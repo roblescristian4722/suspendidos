@@ -1,16 +1,16 @@
 #include "proceso.h"
 
-Proceso::Proceso(std::string nombre, std::string operacion, unsigned int ID, 
-                 unsigned int tiempoMax) : nombre(nombre), ID(ID),
+Proceso::Proceso(std::string nombre, std::string operacion, unsigned long ID, 
+                 unsigned long tiempoMax) : nombre(nombre), ID(ID),
                  tiempoMax(tiempoMax), operacion(operacion)
 {}
 
 Proceso::~Proceso()
 {}
 
-const unsigned int& Proceso::getID() const
+const unsigned long& Proceso::getID() const
 { return this->ID; }
-const unsigned int& Proceso::getTiempoMax() const
+const unsigned long& Proceso::getTiempoMax() const
 { return this->tiempoMax; }
 const std::string& Proceso::getNombre() const
 { return this->nombre; }

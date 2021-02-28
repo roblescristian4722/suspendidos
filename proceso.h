@@ -8,11 +8,11 @@ class Proceso
 private:
     std::string nombre;
     std::string operacion;
-    unsigned int ID;
-    unsigned int tiempoMax;
+    unsigned long ID;
+    unsigned long tiempoMax;
 public:
-    Proceso(std::string nombre, std::string operacion, unsigned int ID,
-            unsigned int tiempoMax);
+    Proceso(std::string nombre, std::string operacion, unsigned long ID,
+            unsigned long tiempoMax);
     ~Proceso();
     
     // Asigna el nombre del programador del proceso
@@ -20,9 +20,9 @@ public:
     // Asigna el tipo de operacion a realizar en el proceso
     const std::string& getOperacion() const;
     // Asigna el ID único al proceso
-    const unsigned int& getID() const;
+    const unsigned long& getID() const;
     // Asigna el tiempo máximo estimado de ejecucón del proceso (en segundos)
-    const unsigned int& getTiempoMax() const;
+    const unsigned long& getTiempoMax() const;
     // Obtiene el nombre del programador del proceso
     bool setNombre(const std::string& nombre);
     // Obtiene el tipo de operación a realizar en el proceso

@@ -30,17 +30,9 @@ int main() {
     std::cout << "Waited " << elapsed.count() << " ms\n";
     */
     
-    std::string aux;
-    std::cout << "XD" << std::endl;
-    std::regex validacion("(-?\\s*\\d\\s*[-|+|*|/|%]\\s*-?\\s*\\d)");
-    while (1){
-        system("clear");
-        
-        std::getline(std::cin, aux);
-        std::cout << aux << ": " <<  std::regex_match(aux, validacion)
-                  << std::endl;
-        std::cin.get();
-    }
-
+    std::cout << colorText(CYAN, "cyan", false) << std::endl
+              << colorText(ROJO, "rojo") << std::endl
+              << colorText(ROJO, "UN ERROR BUEI", false) << std::endl
+              << "soy normal" << std::endl;
     showCursor();
 }

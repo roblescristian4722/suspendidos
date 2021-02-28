@@ -7,6 +7,7 @@
 class Lote
 {
 private:
+    unsigned long ID;
     std::queue<Proceso> procPend;
     Proceso* procActual;
     std::queue<Proceso> procTerm;
