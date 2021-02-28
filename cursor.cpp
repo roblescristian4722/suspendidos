@@ -14,12 +14,12 @@ void showCursor()
 std::string colorText(unsigned char color, std::string msg, bool foreground)
 {
     std::string aux;
-    // foreground: "\033[0(fondo negro);3{color}m{msg}\033[0m"
+    // foreground ANSI: "\033[0(fondo negro);3{color}m{msg}\033[0m"
     if (foreground) {
         aux = "\033[0;3";
         aux += color;
     }
-    // background: "\033[4{color fondo}m\033[1;30(color foreground negro)m
+    // background ANSI: "\033[4{color fondo}m\033[1;30(color foreground negro)m
     //              {msg}\033[0m"
     else {
         aux = "\033[4";
@@ -30,4 +30,12 @@ std::string colorText(unsigned char color, std::string msg, bool foreground)
     aux += msg;
     aux += "\033[0m";
     return aux;
+}
+
+void rmLine(unsigned int n)
+{
+    while (n--) {
+        std::cout << "\033[1A"
+                  << "\033[2K";
+    }
 }

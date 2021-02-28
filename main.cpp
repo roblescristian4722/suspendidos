@@ -34,5 +34,9 @@ int main() {
               << colorText(ROJO, "rojo") << std::endl
               << colorText(ROJO, "UN ERROR BUEI", false) << std::endl
               << "soy normal" << std::endl;
+    std::cin.get();
+    rmLine(4);
+    std::cout << "Ya nomás quedó el cyan siono? xd" << std::endl;
+    std::cin.get();
     showCursor();
 }

@@ -29,5 +29,8 @@ void hideCursor();
 // Retorna una cadena pintada de un color
 std::string colorText(unsigned char color, std::string msg,
                       bool foreground = true);
+// Elimina n cantidad de líneas en pantalla comenzando por la posición actual
+// del puntero
+void rmLine(unsigned int n = 1);
 
 #endif // CURSOR_H
