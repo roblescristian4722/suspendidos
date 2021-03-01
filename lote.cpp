@@ -19,6 +19,7 @@ Lote::Lote()
         std::cin >> aux;
         std::cin.ignore();
     } while (aux == 's' || aux == 'S');
+    ejecutarProcesos();
 }
 
 // Constructor copy
@@ -159,13 +160,20 @@ void Lote::capturarCampo(std::string msj, std::string msjError,
 
 void Lote::ejecutarProcesos()
 {
+    unsigned long cont;
+    std::vector<Proceso>::iterator it; 
     while (this->procPend.size()) {
         this->procActual = new Proceso();
-        *this->procActual = procPend.front();
-        std::this_thread::sleep_for(std::chrono::seconds(
-                                    this->procActual->getTiempoMax()));
+        *this->procActual = this->procPend.front();
+        this->procPend.erase(this->procPend.begin());
+        cont = this->procActual->getTiempoMax();
+        while (cont--) {
+            std::cout << "procesando " << this->procActual->getID()
+                      << "..." << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(1));        
+        }
         this->procTerm.push_back(*this->procActual);
         delete this->procActual; this->procActual = nullptr;
     }
-    this->getProcesosTerminados();
+    getProcesosTerminados();
 }
