@@ -1,0 +1,3 @@
+/home/kristo/Documents/procesamiento_por_lotes/build/CMakeFiles/rebuild_cache.dir
+/home/kristo/Documents/procesamiento_por_lotes/build/CMakeFiles/edit_cache.dir
+/home/kristo/Documents/procesamiento_por_lotes/build/CMakeFiles/procesamientoPorLotes.dir

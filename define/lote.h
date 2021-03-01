@@ -5,6 +5,7 @@
 #include <chrono>
 #include <thread>
 #include <map>
+#include <regex>
 #include "proceso.h"
 #include "cursor.h"
 
@@ -30,16 +31,16 @@ public:
     Lote();
     Lote(const Lote& lote);
     ~Lote();
+    const Lote& operator =(const Lote& lote);
     
     void getProcesosPendientes();
     void getProcesosTerminados();
     Proceso* getProcesoActual() const;
     const unsigned long& getID() const;
+    bool setID(const std::string& ID, std::map<std::string,bool>* IDs);
+    
     void capturarLote();
-
     void ejecutarProcesos();
-
-    const Lote& operator =(const Lote& lote);
 };
 
 #endif // LOTE_H

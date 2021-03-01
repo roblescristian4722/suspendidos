@@ -6,8 +6,6 @@
 #include <ostream>
 #include <thread>
 
-using namespace std::chrono_literals;
-
 Lote::Lote()
 {
     char aux = 'n';
@@ -60,7 +58,7 @@ void Lote::getProcesosPendientes()
                   << "Nombre: " << this->procPend[i].getNombre() << std::endl
                   << "Operación: " << this->procPend[i].getOperacion()
                   << std::endl
-                  << "Tiempo:" << this->procPend[i].getTiempoMax()
+                  << "Tiempo: " << this->procPend[i].getTiempoMax()
                   << std::endl;
     }
 }
@@ -73,7 +71,7 @@ void Lote::getProcesosTerminados()
                   << "Nombre: " << this->procTerm[i].getNombre() << std::endl
                   << "Operación: " << this->procTerm[i].getOperacion()
                   << std::endl
-                  << "Tiempo:" << this->procTerm[i].getTiempoMax()
+                  << "Tiempo: " << this->procTerm[i].getTiempoMax()
                   << std::endl;
     }
 }
@@ -83,6 +81,18 @@ Proceso* Lote::getProcesoActual() const
 
 const unsigned long& Lote::getID() const
 { return this->ID; }
+
+bool Lote::setID(const std::string&ID, std::map<std::string, bool>* IDs)
+{
+    std::regex validacion("[1-9][0-9]{1,4}");
+    if (std::regex_match(ID, validacion))
+        if (IDs->find(ID) == IDs->end()) {
+            (*IDs)[ID] = true;
+            this->ID = std::stoul(ID);
+            return true;
+        }
+    return false;
+}
 
 void Lote::capturarLote()
 {
@@ -162,6 +172,13 @@ void Lote::ejecutarProcesos()
 {
     unsigned long cont;
     std::vector<Proceso>::iterator it; 
+
+    std::cout << "pendientes:" << std::endl;
+    getProcesosPendientes();
+    std::cout << "terminados:" << std::endl;
+    getProcesosTerminados();
+
+
     while (this->procPend.size()) {
         this->procActual = new Proceso();
         *this->procActual = this->procPend.front();
@@ -175,5 +192,9 @@ void Lote::ejecutarProcesos()
         this->procTerm.push_back(*this->procActual);
         delete this->procActual; this->procActual = nullptr;
     }
+    
+    std::cout << std::endl << "pendientes:" << std::endl;
+    getProcesosPendientes();
+    std::cout << "terminados:" << std::endl;
     getProcesosTerminados();
 }

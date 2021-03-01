@@ -1,0 +1,1 @@
+/usr/bin/c++ -rdynamic CMakeFiles/procesamientoPorLotes.dir/src/main.cpp.o CMakeFiles/procesamientoPorLotes.dir/src/cursor.cpp.o CMakeFiles/procesamientoPorLotes.dir/src/lote.cpp.o CMakeFiles/procesamientoPorLotes.dir/src/procesadorLotes.cpp.o CMakeFiles/procesamientoPorLotes.dir/src/proceso.cpp.o -o procesamientoPorLotes 

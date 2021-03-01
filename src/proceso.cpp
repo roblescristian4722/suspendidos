@@ -43,7 +43,7 @@ bool Proceso::setOperacion(const std::string& operacion)
 
 bool Proceso::setID(const std::string& ID, std::map<std::string, bool>* IDs)
 {
-    std::regex validacion("[0-9]{1,5}");
+    std::regex validacion("[1-9][0-9]{1,4}");
     if (std::regex_match(ID, validacion)){
         if (IDs->find(ID) == IDs->end()) {
             (*IDs)[ID] = true;
