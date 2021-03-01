@@ -35,14 +35,5 @@ int main() {
     std::chrono::duration<double, std::milli> elapsed = end-start;
     std::cout << "Waited " << elapsed.count() << " ms\n";
     */
-
-    Proceso proc;
-    std::cout << proc.setNombre("2425234") << std::endl
-              << proc.setID("asdf34") << std::endl
-              << proc.setOperacion("3iglkh") << std::endl
-              << proc.setTiempoMax("erkjg") << std::endl;
-
     Lote lote;
-    lote.capturarLote();
-    
 }

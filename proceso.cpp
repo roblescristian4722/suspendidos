@@ -33,7 +33,7 @@ bool Proceso::setNombre(const std::string& nombre)
 
 bool Proceso::setOperacion(const std::string& operacion)
 {
-    std::regex validacion("(-?\\s*\\d\\s*[-|+|*|/|%]\\s*-?\\s*\\d)");
+    std::regex validacion("(-?\\s*\\d+\\s*[-|+|*|/|%]\\s*-?\\s*\\d+)");
     if (std::regex_match(operacion, validacion)) {
         this->operacion = operacion;
         return true;

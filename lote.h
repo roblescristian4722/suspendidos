@@ -2,6 +2,8 @@
 #define LOTE_H
 #include <iostream>
 #include <vector>
+#include <chrono>
+#include <thread>
 #include "proceso.h"
 #include "cursor.h"
 
@@ -18,9 +20,18 @@ private:
                        bool(Proceso::*metodo)(const std::string&));
 public:
     Lote();
+    Lote(const Lote& lote);
     ~Lote();
-
+    
+    void getProcesosPendientes();
+    void getProcesosTerminados();
+    Proceso* getProcesoActual() const;
+    const unsigned long& getID() const;
     void capturarLote();
+
+    void ejecutarProcesos();
+
+    const Lote& operator =(const Lote& lote);
 };
 
 #endif // LOTE_H
