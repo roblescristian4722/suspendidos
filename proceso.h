@@ -13,6 +13,7 @@ private:
 public:
     Proceso(std::string nombre, std::string operacion, unsigned long ID,
             unsigned long tiempoMax);
+    Proceso();
     ~Proceso();
     
     // Asigna el nombre del programador del proceso

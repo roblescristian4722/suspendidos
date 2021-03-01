@@ -5,6 +5,9 @@ Proceso::Proceso(std::string nombre, std::string operacion, unsigned long ID,
                  tiempoMax(tiempoMax), operacion(operacion)
 {}
 
+Proceso::Proceso()
+{}
+
 Proceso::~Proceso()
 {}
 
@@ -49,10 +52,12 @@ bool Proceso::setID(const std::string& ID)
 }
 bool Proceso::setTiempoMax(const std::string& tiempoMax)
 {
-    std::regex validacion("[0-9]+");
+    std::regex validacion("[0-9]{1,4}");
     if (std::regex_match(tiempoMax, validacion)){
-        this->tiempoMax = stoul(tiempoMax);
-        return true;
+        if (stoul(tiempoMax) > 0 && stoul(tiempoMax) <= 3600) {
+            this->tiempoMax = stoul(tiempoMax);
+            return true;
+        }
     }
     return false;
 }

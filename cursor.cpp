@@ -35,7 +35,9 @@ std::string colorText(unsigned char color, std::string msg, bool foreground)
 void rmLine(unsigned int n)
 {
     while (n--) {
-        std::cout << "\033[1A"
-                  << "\033[2K";
+        // Borra la línea actual
+        std::cout << "\033[2K";
+        // Regresa a la línea anterior (sube 1 línea)
+        std::cout << "\033[1A";
     }
 }

@@ -4,12 +4,18 @@
 #include <thread>
 #include <regex>
 #include "cursor.h"
+#include "proceso.h"
+#include "lote.h"
+#include "procesadorLotes.h"
 #if _WIN64 | _WIN32
     #include <Windows.h>
     #define SLEEP(x) Sleep(x);
 #else
     #define SLEEP(x) std::this_thread::sleep_for(std::chrono::milliseconds(x));
 #endif
+
+bool test(int n)
+{ return n; }
 
 int main() { 
     /*gotoxy(20,50);
@@ -29,14 +35,14 @@ int main() {
     std::chrono::duration<double, std::milli> elapsed = end-start;
     std::cout << "Waited " << elapsed.count() << " ms\n";
     */
+
+    Proceso proc;
+    std::cout << proc.setNombre("2425234") << std::endl
+              << proc.setID("asdf34") << std::endl
+              << proc.setOperacion("3iglkh") << std::endl
+              << proc.setTiempoMax("erkjg") << std::endl;
+
+    Lote lote;
+    lote.capturarLote();
     
-    std::cout << colorText(CYAN, "cyan", false) << std::endl
-              << colorText(ROJO, "rojo") << std::endl
-              << colorText(ROJO, "UN ERROR BUEI", false) << std::endl
-              << "soy normal" << std::endl;
-    std::cin.get();
-    rmLine(4);
-    std::cout << "Ya nomás quedó el cyan siono? xd" << std::endl;
-    std::cin.get();
-    showCursor();
 }
