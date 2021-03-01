@@ -29,7 +29,8 @@ public:
     // Obtiene el tipo de operación a realizar en el proceso
     bool setOperacion(const std::string& operacion);
     // Obtiene el ID único del proceso
-    bool setID(const std::string& ID);
+    bool setID(const std::string& ID,
+               std::map<std::string, bool>* IDs);
     // Obtiene el tiempo máximo estimado de ejecución del proceso (en segundos)
     bool setTiempoMax(const std::string& tiempoMax);
 };

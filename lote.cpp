@@ -99,12 +99,38 @@ void Lote::capturarLote()
     // Captura de ID
     capturarCampo("Ingrese el ID del proceso: ",
                   "ERROR: el ID no es válido, debe de ser un número positivo "
-                  "del 0 al 99999", aux, &Proceso::setID);
+                  "del 0 al 99999", aux, &Proceso::setID, &this->IDsUsados);
     // Captura de tiempo máximo
     capturarCampo("Ingrese el tiempo máximo estimado de ejecución: ",
                   "ERROR: el tiempo máximo de ejecución debe de ser un número "
                   "mayor a cero", aux, &Proceso::setTiempoMax);
     this->procPend.push_back(aux);
+}
+
+void Lote::capturarCampo(std::string msj, std::string msjError,
+                         Proceso& proc,
+                         bool(Proceso::*metodo)(const std::string&,
+                                                std::map<std::string,bool>*),
+                         std::map<std::string, bool>* IDs)
+{
+    std::string aux;
+    bool unaVez = false;
+    std::cout << colorText(VERDE, msj);
+    while(1) {
+        std::getline(std::cin, aux);
+        // Si el input es correcto rompemos el búcle infinito
+        if ((proc.*metodo)(aux, IDs)) {
+            break;
+        }
+        if (!unaVez) {
+            unaVez = true;
+            rmLine();
+        }
+        else
+            rmLine(2);
+        std::cout << colorText(ROJO, msjError, true) << std::endl;
+        std::cout << colorText(VERDE, msj);
+    }
 }
 
 void Lote::capturarCampo(std::string msj, std::string msjError,
@@ -117,8 +143,9 @@ void Lote::capturarCampo(std::string msj, std::string msjError,
     while(1) {
         std::getline(std::cin, aux);
         // Si el input es correcto rompemos el búcle infinito
-        if ((proc.*metodo)(aux))
+        if ((proc.*metodo)(aux)) {
             break;
+        }
         if (!unaVez) {
             unaVez = true;
             rmLine();

@@ -4,6 +4,7 @@
 #include <vector>
 #include <chrono>
 #include <thread>
+#include <map>
 #include "proceso.h"
 #include "cursor.h"
 
@@ -14,10 +15,17 @@ private:
     std::vector<Proceso> procPend;
     Proceso* procActual;
     std::vector<Proceso> procTerm;
+    std::map<std::string, bool> IDsUsados;
 
     void capturarCampo(std::string msj, std::string msjError,
                        Proceso& proc,
                        bool(Proceso::*metodo)(const std::string&));
+    void capturarCampo(std::string msj, std::string msjError,
+                       Proceso& proc,
+                       bool(Proceso::*metodo)(const std::string&,
+                                              std::map<std::string,bool>*),
+                       std::map<std::string, bool>* IDs);
+
 public:
     Lote();
     Lote(const Lote& lote);
