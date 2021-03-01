@@ -38,13 +38,20 @@ void Lote::capturarCampo(std::string msj, std::string msjError,
                          bool(Proceso::*metodo)(const std::string&))
 {
     std::string aux;
+    bool unaVez = false;
+    std::cout << colorText(VERDE, msj);
     while(1) {
-        std::cout << colorText(VERDE, msj);
         std::getline(std::cin, aux);
         // Si el input es correcto rompemos el búcle infinito
         if ((proc.*metodo)(aux))
             break;
-        rmLine();
+        if (!unaVez) {
+            unaVez = true;
+            rmLine();
+        }
+        else
+            rmLine(2);
         std::cout << colorText(ROJO, msjError, true) << std::endl;
+        std::cout << colorText(VERDE, msj);
     }
 }
