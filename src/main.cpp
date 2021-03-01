@@ -3,10 +3,10 @@
 #include <chrono>
 #include <thread>
 #include <regex>
-#include "cursor.h"
-#include "proceso.h"
-#include "lote.h"
-#include "procesadorLotes.h"
+#include "../define/cursor.h"
+#include "../define/proceso.h"
+#include "../define/lote.h"
+#include "../define/procesadorLotes.h"
 #if _WIN64 | _WIN32
     #include <Windows.h>
     #define SLEEP(x) Sleep(x);

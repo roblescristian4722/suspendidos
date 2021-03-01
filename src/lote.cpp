@@ -1,6 +1,6 @@
-#include "lote.h"
-#include "cursor.h"
-#include "proceso.h"
+#include "../define/lote.h"
+#include "../define/cursor.h"
+#include "../define/proceso.h"
 #include <chrono>
 #include <cstdio>
 #include <ostream>

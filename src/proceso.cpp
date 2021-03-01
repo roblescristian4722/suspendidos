@@ -1,4 +1,4 @@
-#include "proceso.h"
+#include "../define/proceso.h"
 
 Proceso::Proceso(std::string nombre, std::string operacion, unsigned long ID, 
                  unsigned long tiempoMax) : nombre(nombre), ID(ID),
