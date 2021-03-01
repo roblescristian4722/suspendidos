@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
+set(CMAKE_CXX_STANDARD 11)
 
 # Nombre del proyecto y versión (la versión corresponde al número de programa
 # a entregar para la materia)
