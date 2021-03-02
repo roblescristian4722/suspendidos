@@ -35,15 +35,8 @@ void ProcesadorLotes::capturarLote()
     std::cout << "Iniciando captura de procesos del lote " 
               << aux.getID() << "..." << std::endl;
     aux.iniciarCaptura();
-    std::cout << std::endl << aux.getID() << std::endl
-              << std::endl;
-    std::cin.get();
-
     // Se añade a la cola de lotes pendientes
     this->lotesPendientes.push_back(aux);
-    std::cout << std::endl << lotesPendientes.back().getID() << std::endl
-              << std::endl;
-    std::cin.get();
 }
 
 void ProcesadorLotes::ejecutarLotes()

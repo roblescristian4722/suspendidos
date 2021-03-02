@@ -37,15 +37,7 @@ int main() {
     ProcesadorLotes procLotes;
     procLotes.iniciar();
     */
-
-    std::string aux;
-    Proceso *p;
-    while(1) {
-        std::cout << "nuevo..." << std::endl;
-        getline(std::cin, aux);
-        p = new Proceso(aux);
-        p->calculate();
-        std::cout << " | res: " << p->getResultado() << std::endl;
-        delete p;
-    }
+    
+    ProcesadorLotes p;
+    p.iniciar();
 }

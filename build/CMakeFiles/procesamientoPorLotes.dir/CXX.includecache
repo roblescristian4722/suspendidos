@@ -6,13 +6,49 @@
 
 #IncludeRegexTransform: 
 
+/home/kristo/Documents/procesamiento_por_lotes/define/cursor.h
+iostream
+-
+stdio.h
+-
+regex
+-
+
+/home/kristo/Documents/procesamiento_por_lotes/define/lote.h
+iostream
+-
+vector
+-
+chrono
+-
+thread
+-
+map
+-
+regex
+-
+proceso.h
+/home/kristo/Documents/procesamiento_por_lotes/define/proceso.h
+cursor.h
+/home/kristo/Documents/procesamiento_por_lotes/define/cursor.h
+
+/home/kristo/Documents/procesamiento_por_lotes/define/procesadorLotes.h
+iostream
+-
+map
+-
+vector
+-
+lote.h
+/home/kristo/Documents/procesamiento_por_lotes/define/lote.h
+
 /home/kristo/Documents/procesamiento_por_lotes/define/proceso.h
 iostream
 -
 regex
 -
 
-/home/kristo/Documents/procesamiento_por_lotes/src/proceso.cpp
-../define/proceso.h
-/home/kristo/Documents/procesamiento_por_lotes/define/proceso.h
+/home/kristo/Documents/procesamiento_por_lotes/src/procesadorLotes.cpp
+../define/procesadorLotes.h
+/home/kristo/Documents/procesamiento_por_lotes/define/procesadorLotes.h
 

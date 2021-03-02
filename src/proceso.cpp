@@ -77,7 +77,7 @@ void Proceso::calculate()
     std::string aux = "";
     std::string nextChar = "";
     std::regex opDis("[-|/|+|*|%]");
-    std:: cout << "for: " << std::endl;
+    
     for (size_t i = 0; i < this->operacion.size(); ++i) {
         if (this->operacion[i] != ' ')
             aux += this->operacion[i];
@@ -102,7 +102,6 @@ void Proceso::calculate()
             else
                 num2 = stol(aux);
         }
-        std::cout << aux << " " << num1 << " " << op << " " << num2 << std::endl;
     }
     // second number
     if (aux != "")

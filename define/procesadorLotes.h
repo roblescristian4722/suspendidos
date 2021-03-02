@@ -14,10 +14,6 @@ private:
     std::map<std::string, bool> IDsUsados;
     unsigned long tiempoTotal;
 
-public:
-    ProcesadorLotes();
-    ~ProcesadorLotes();
-
     // Ejecuta un búcle hasta que la captura del lote sea válida (hasta que se
     // retorne un true)
     void capturarLote();
@@ -29,6 +25,11 @@ public:
     // Se itera por el vector de lotes pendientes y se ejecutan en orden para
     // después guardarlos en el vector de lotes terminados
     void ejecutarLotes();
+
+public:
+    ProcesadorLotes();
+    ~ProcesadorLotes();
+
     // Se comienza con la captura y posteriormente la ejecición de lotes
     void iniciar();
 };

@@ -189,11 +189,6 @@ void Lote::ejecutarProcesos()
     unsigned long cont;
     std::vector<Proceso>::iterator it; 
 
-    std::cout << "pendientes:" << std::endl;
-    getProcesosPendientes();
-    std::cout << "terminados:" << std::endl;
-    getProcesosTerminados();
-
     while (this->procPend.size()) {
         this->procActual = new Proceso(this->procPend.front());
         this->procPend.erase(this->procPend.begin());
@@ -201,17 +196,16 @@ void Lote::ejecutarProcesos()
         cont = this->procActual->getTiempoMax();
         this->tiempoTotal += 0;
 
+        
         while (cont--) {
             std::cout << "procesando " << this->procActual->getID()
                       << "..." << std::endl;
             std::this_thread::sleep_for(std::chrono::seconds(1));        
         }
+        this->procActual->calculate();
+        std::cout << "resultado: " << this->procActual->getResultado()
+                  << std::endl; 
         this->procTerm.push_back(*this->procActual);
         delete this->procActual; this->procActual = nullptr;
     }
-    
-    std::cout << std::endl << "pendientes:" << std::endl;
-    getProcesosPendientes();
-    std::cout << "terminados:" << std::endl;
-    getProcesosTerminados();
 }
