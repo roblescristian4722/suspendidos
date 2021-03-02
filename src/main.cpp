@@ -34,7 +34,18 @@ int main() {
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed = end-start;
     std::cout << "Waited " << elapsed.count() << " ms\n";
-    */
     ProcesadorLotes procLotes;
     procLotes.iniciar();
+    */
+
+    std::string aux;
+    Proceso *p;
+    while(1) {
+        std::cout << "nuevo..." << std::endl;
+        getline(std::cin, aux);
+        p = new Proceso(aux);
+        p->calculate();
+        std::cout << " | res: " << p->getResultado() << std::endl;
+        delete p;
+    }
 }

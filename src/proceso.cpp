@@ -2,14 +2,12 @@
 
 Proceso::Proceso(std::string nombre, std::string operacion, unsigned long ID, 
                  unsigned long tiempoMax) : nombre(nombre), ID(ID),
-                 tiempoMax(tiempoMax), operacion(operacion)
-{}
+                 tiempoMax(tiempoMax), operacion(operacion) {}
 
-Proceso::Proceso()
-{}
+Proceso::Proceso(std::string tmp): operacion(tmp) 
+{ this->resultado = 0; }
 
-Proceso::~Proceso()
-{}
+Proceso::~Proceso() {}
 
 const unsigned long& Proceso::getID() const
 { return this->ID; }
@@ -65,4 +63,66 @@ bool Proceso::setTiempoMax(const std::string& tiempoMax)
         }
     }
     return false;
+}
+
+const long& Proceso::getResultado() const
+{ return this->resultado; }
+
+void Proceso::calculate()
+{
+    bool first = false;
+    long num1 = 0;
+    long num2 = 0;
+    char op = ' ';
+    std::string aux = "";
+    std::string nextChar = "";
+    std::regex opDis("[-|/|+|*|%]");
+    std:: cout << "for: " << std::endl;
+    for (size_t i = 0; i < this->operacion.size(); ++i) {
+        if (this->operacion[i] != ' ')
+            aux += this->operacion[i];
+        if (aux != "") {
+            // símbolo de operación
+            if (std::regex_match(aux, opDis) && first && op == ' ') {
+                op = aux[0];
+                aux = "";
+            }
+            // No es el último caracter de la cadena
+            else if (i < this->operacion.size() - 1) {
+                nextChar = this->operacion[i + 1];
+                // first number
+                if (std::regex_match(nextChar, opDis) ||
+                     (nextChar == " " && !first)) {
+                    first = true;
+                    num1 = stol(aux);
+                    aux = "";
+                }
+            }
+            // es el último caracter = segundo número
+            else
+                num2 = stol(aux);
+        }
+        std::cout << aux << " " << num1 << " " << op << " " << num2 << std::endl;
+    }
+    // second number
+    if (aux != "")
+        num2 = stol(aux);
+
+    switch (op) {
+        case '/':
+            this->resultado = num1 / num2;
+        break;
+        case '%':
+            this->resultado = num1 % num2;
+        break;
+        case '*':
+            this->resultado = num1 * num2;
+        break;
+        case '+':
+            this->resultado = num1 + num2;
+        break;
+        case '-':
+            this->resultado = num1 - num2;
+        break;
+    }
 }
