@@ -15,6 +15,10 @@ Lote::Lote()
 // Constructor copy
 Lote::Lote(const Lote& lote)
 {
+
+    this->ID = lote.ID;
+    this->IDsUsados = lote.IDsUsados;
+    this->tiempoTotal = lote.tiempoTotal;
     this->procPend = lote.procPend;
     this->procTerm = lote.procTerm;
     this->procActual = lote.procActual != nullptr
@@ -27,6 +31,9 @@ Lote::Lote(const Lote& lote)
 
 const Lote& Lote::operator=(const Lote &lote)
 {
+    this->ID = lote.ID;
+    this->IDsUsados = lote.IDsUsados;
+    this->tiempoTotal = lote.tiempoTotal;
     this->procPend = lote.procPend;
     this->procTerm = lote.procTerm;
     this->procActual = lote.procActual != nullptr
