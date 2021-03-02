@@ -35,5 +35,6 @@ int main() {
     std::chrono::duration<double, std::milli> elapsed = end-start;
     std::cout << "Waited " << elapsed.count() << " ms\n";
     */
-    Lote lote;
+    ProcesadorLotes procLotes;
+    procLotes.iniciar();
 }

@@ -34,7 +34,9 @@ bool Proceso::setNombre(const std::string& nombre)
 bool Proceso::setOperacion(const std::string& operacion)
 {
     std::regex validacion("(-?\\s*\\d+\\s*[-|+|*|/|%]\\s*-?\\s*\\d+)");
-    if (std::regex_match(operacion, validacion)) {
+    std::regex sobreCero("(-?\\s*\\d+\\s*[/|%]\\s*-?\\s*0)");
+    if (std::regex_match(operacion, validacion) && 
+        !std::regex_match(operacion, sobreCero)) {
         this->operacion = operacion;
         return true;
     }
@@ -43,7 +45,7 @@ bool Proceso::setOperacion(const std::string& operacion)
 
 bool Proceso::setID(const std::string& ID, std::map<std::string, bool>* IDs)
 {
-    std::regex validacion("[1-9][0-9]{1,4}");
+    std::regex validacion("[1-9][0-9]{0,4}");
     if (std::regex_match(ID, validacion)){
         if (IDs->find(ID) == IDs->end()) {
             (*IDs)[ID] = true;

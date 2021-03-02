@@ -1,18 +1,61 @@
-#include "procesadorLotes.h"
+#include "../define/procesadorLotes.h"
 
 ProcesadorLotes::ProcesadorLotes()
-{}
+{
+    this->loteActual = nullptr;
+    this->tiempoTotal = 0;
+}
 
 ProcesadorLotes::~ProcesadorLotes()
-{}
+{
+    if (this->loteActual)
+        delete this->loteActual;
+    this->loteActual = nullptr;
+}
+
+void ProcesadorLotes::iniciar()
+{
+    char aux = 'n';
+    do {
+        capturarLote();
+        std::cout << colorText(MORADO, "¿Desea capturar otro lote? s = si, "
+                                     "cualquier otra tecla = no: ");
+        std::cin >> aux;
+        std::cin.ignore();
+    } while (aux == 's' || aux == 'S');
+    ejecutarLotes();
+}
 
 void ProcesadorLotes::capturarLote()
 {
+    Lote aux;
 
+    // Se captura el ID del lote
+    capturarID(aux, &Lote::setID, &this->IDsUsados);
+    std::cout << "Iniciando captura de procesos del lote " 
+              << aux.getID() << "..." << std::endl;
+    aux.iniciarCaptura();
+    // Se añade a la cola de lotes pendientes
+    this->lotesPendientes.push_back(aux);
+}
+
+void ProcesadorLotes::ejecutarLotes()
+{
+    while (this->lotesPendientes.size()) {
+        this->loteActual = new Lote(this->lotesPendientes.front());
+        this->lotesPendientes.erase(this->lotesPendientes.begin());
+        
+        std::cout << "Iniciando ejecución de procesos del lote "
+                  << this->loteActual->getID() << "..." << std::endl;
+        this->loteActual->ejecutarProcesos();
+
+        this->lotesTerminados.push_back(*this->loteActual);
+        delete this->loteActual; this->loteActual = nullptr;
+    }
 }
 
 void ProcesadorLotes::capturarID(Lote& lote, bool(Lote::*metodo)
-                              (const std::string&, std::map<std::string,bool>),
+                              (const std::string&, std::map<std::string,bool>*),
                                std::map<std::string, bool>* IDs)
 {
     std::string aux;
@@ -21,7 +64,7 @@ void ProcesadorLotes::capturarID(Lote& lote, bool(Lote::*metodo)
     while(1) {
         std::getline(std::cin, aux);
         // Si el input es correcto rompemos el búcle infinito
-        if ((lote.*metodo)(aux, *IDs)) {
+        if ((lote.*metodo)(aux, IDs)) {
             break;
         }
         if (!unaVez) {

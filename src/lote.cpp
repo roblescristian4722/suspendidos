@@ -7,17 +7,9 @@
 #include <thread>
 
 Lote::Lote()
-{
-    char aux = 'n';
+{ 
     procActual = nullptr;
-    do {
-        capturarLote();
-        std::cout << colorText(CYAN, "¿Desea capturar otro proceso? s = si, "
-                                     "cualquier otra tecla = no: ");
-        std::cin >> aux;
-        std::cin.ignore();
-    } while (aux == 's' || aux == 'S');
-    ejecutarProcesos();
+    tiempoTotal = 0;
 }
 
 // Constructor copy
@@ -33,9 +25,6 @@ Lote::Lote(const Lote& lote)
         : nullptr;
 }
 
-Lote::~Lote()
-{}
-
 const Lote& Lote::operator=(const Lote &lote)
 {
     this->procPend = lote.procPend;
@@ -48,6 +37,26 @@ const Lote& Lote::operator=(const Lote &lote)
         : nullptr;
 
     return *this;
+}
+
+Lote::~Lote()
+{ 
+    if (this->procActual)
+        delete this->procActual;
+    this->procActual = nullptr;
+}
+
+void Lote::iniciarCaptura()
+{
+    char aux = 'n';
+    procActual = nullptr;
+    do {
+        capturarLote();
+        std::cout << colorText(CYAN, "¿Desea capturar otro proceso? s = si, "
+                                     "cualquier otra tecla = no: ");
+        std::cin >> aux;
+        std::cin.ignore();
+    } while (aux == 's' || aux == 'S');
 }
 
 void Lote::getProcesosPendientes()
@@ -84,7 +93,7 @@ const unsigned long& Lote::getID() const
 
 bool Lote::setID(const std::string&ID, std::map<std::string, bool>* IDs)
 {
-    std::regex validacion("[1-9][0-9]{1,4}");
+    std::regex validacion("[1-9][0-9]{0,4}");
     if (std::regex_match(ID, validacion))
         if (IDs->find(ID) == IDs->end()) {
             (*IDs)[ID] = true;
@@ -110,7 +119,7 @@ void Lote::capturarLote()
     // Captura de ID
     capturarCampo("Ingrese el ID del proceso: ",
                   "ERROR: el ID no es válido, debe de ser un número positivo "
-                  "del 0 al 99999", aux, &Proceso::setID, &this->IDsUsados);
+                  "del 1 al 99999", aux, &Proceso::setID, &this->IDsUsados);
     // Captura de tiempo máximo
     capturarCampo("Ingrese el tiempo máximo estimado de ejecución: ",
                   "ERROR: el tiempo máximo de ejecución debe de ser un número "
@@ -178,12 +187,13 @@ void Lote::ejecutarProcesos()
     std::cout << "terminados:" << std::endl;
     getProcesosTerminados();
 
-
     while (this->procPend.size()) {
-        this->procActual = new Proceso();
-        *this->procActual = this->procPend.front();
+        this->procActual = new Proceso(this->procPend.front());
         this->procPend.erase(this->procPend.begin());
+
         cont = this->procActual->getTiempoMax();
+        this->tiempoTotal += 0;
+
         while (cont--) {
             std::cout << "procesando " << this->procActual->getID()
                       << "..." << std::endl;
