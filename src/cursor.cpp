@@ -41,3 +41,31 @@ void rmLine(unsigned int n)
         std::cout << "\033[1A";
     }
 }
+
+void drawXLine(int x, int y, int len, char color, std::string caracter)
+{
+    int i;
+    for (i = 0; i < len; ++i) {
+        gotoxy(x + i, y);
+        std::cout << colorText(color, caracter);
+    }
+    gotoxy(i, y);
+}
+
+void drawYLine(int x, int y, int len, char color, std::string caracter)
+{
+    int i;
+    for (i = 0; i < len; ++i) {
+        gotoxy(x, y + i);
+        std::cout << colorText(color, caracter);
+    }
+    gotoxy(x, i);
+}
+
+void drawFrame(int x, int y, int w, int h, char color, std::string caracter)
+{
+    drawXLine(x, y, w, color, caracter);
+    drawYLine(x, y, h, color, caracter);
+    drawYLine(x + w - 1, y, h, color, caracter);
+    drawXLine(x, y + h - 1, w, color, caracter);
+}

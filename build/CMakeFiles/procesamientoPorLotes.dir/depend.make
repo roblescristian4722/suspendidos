@@ -21,6 +21,7 @@ CMakeFiles/procesamientoPorLotes.dir/src/procesadorLotes.cpp.o: ../define/proces
 CMakeFiles/procesamientoPorLotes.dir/src/procesadorLotes.cpp.o: ../define/proceso.h
 CMakeFiles/procesamientoPorLotes.dir/src/procesadorLotes.cpp.o: ../src/procesadorLotes.cpp
 
+CMakeFiles/procesamientoPorLotes.dir/src/proceso.cpp.o: ../define/cursor.h
 CMakeFiles/procesamientoPorLotes.dir/src/proceso.cpp.o: ../define/proceso.h
 CMakeFiles/procesamientoPorLotes.dir/src/proceso.cpp.o: ../src/proceso.cpp
 

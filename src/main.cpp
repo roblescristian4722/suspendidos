@@ -38,6 +38,11 @@ int main() {
     procLotes.iniciar();
     */
     
-    ProcesadorLotes p;
-    p.iniciar();
+    //ProcesadorLotes p;
+    //p.iniciar();
+    clrscr();
+    //drawFrame(1, 3, 10, 5, AZUL);
+    drawFrame(10, 10, 5, 10, VERDE);
+    //drawFrame(21, 10, 15, 10, CYAN);
+    std::cin.get();
 }

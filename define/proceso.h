@@ -2,6 +2,7 @@
 #define PROCESO_H
 #include <iostream>
 #include <regex>
+#include "cursor.h"
 
 class Proceso
 {
