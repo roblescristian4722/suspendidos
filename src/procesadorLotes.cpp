@@ -41,10 +41,18 @@ void ProcesadorLotes::capturarLote()
 
 void ProcesadorLotes::ejecutarLotes()
 {
+    std::string aux;
+    Cursor::clrscr();
+    Frame lotes(1, 1, 10, 5, CYAN);
     while (this->lotesPendientes.size()) {
         this->loteActual = new Lote(this->lotesPendientes.front());
         this->lotesPendientes.erase(this->lotesPendientes.begin());
         
+        for (size_t i = 0; i < this->lotesPendientes.size(); ++i) {
+            lotes.printNum(this->lotesPendientes[i].getID(), BLANCO, true);
+        }
+        Cursor::gotoxy(1, 30);
+
         std::cout << "Iniciando ejecución de procesos del lote "
                   << this->loteActual->getID() << "..." << std::endl;
         this->loteActual->ejecutarProcesos();

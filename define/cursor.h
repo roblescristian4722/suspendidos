@@ -64,12 +64,18 @@ public:
            bool foreground = true, std::string simbol = "*");
     ~Frame();
 
+    // Establece las propiedades del frame
+    void setFrame(int x = 0, int y = 0, int w = 0, int h = 0, char color = BLANCO,
+           bool foreground = true, std::string simbol = "*");
+
     // Dibuja un marco en la terminal y guarda la información brindada para
     // imprimir el contenido dentro del marco
     void drawFrame(int x, int y, int w, int h, char color = BLANCO,
                    bool foreground = false, std::string caracter = "*");
     // Imprime un mensaje dentro del marco
-    void print(std::string msj, char color = BLANCO,
+    void printNum(const int& msj, char color = BLANCO,
+               bool newl = false);
+    void print(const std::string& msj, char color = BLANCO,
                bool newl = false);
 };
 

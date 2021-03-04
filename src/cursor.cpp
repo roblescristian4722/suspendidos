@@ -3,7 +3,7 @@
 Frame::Frame(int x, int y, int w, int h, char color, bool foreground,
                std::string simbol): heightFrame(h), widthFrame(w), xFrame(x),
                                     yFrame(y), foreground(foreground),
-                                    contentColor(BLANCO), simbol("*"),
+                                    contentColor(BLANCO), simbol(simbol),
                                     color(color)
 {
     drawFrame(x, y, w, h, color, foreground, simbol);
@@ -13,6 +13,21 @@ Frame::Frame(int x, int y, int w, int h, char color, bool foreground,
 
 Frame::~Frame()
 {}
+
+void Frame::setFrame(int x, int y, int w, int h, char color, bool foreground,
+               std::string simbol)
+{
+    this->heightFrame = h;
+    this->widthFrame = w;
+    this->xFrame = x;
+    this->yFrame = y;
+    this->foreground = foreground;
+    this->simbol = simbol;
+    this->color = color;
+    drawFrame(x, y, w, h, color, foreground, simbol);
+    this->xPos = x + 1;
+    this->yPos = y + 1;
+}
 
 void Cursor::gotoxy(int x,int y)
 { printf("%c[%d;%df",0x1B,y,x); }
@@ -90,14 +105,15 @@ void Frame::drawFrame(int x, int y, int w, int h, char color, bool foreground,
     gotoxy(x + 1, y + 1);
 }
 
-void Frame::print(std::string msj, char color, bool newl)
+void Frame::print(const std::string& msj, char color, bool newl)
 {
     std::string aux;
     unsigned int times = msj.size() / (this->widthFrame - 2);
-    drawFrame(this->xFrame, this->yFrame, this->widthFrame,
-              times + 3, this->color, this->foreground,
-              this->simbol);
+    //drawFrame(this->xFrame, this->yFrame, this->widthFrame,
+      //        times + 3, this->color, this->foreground,
+        //      this->simbol);
     for (size_t i = 0; i < msj.size(); ++i) {
+        gotoxy(this->xPos, this->yPos);
         aux = msj[i];
         std::cout << colorText(color, aux, this->foreground);
 
@@ -106,5 +122,21 @@ void Frame::print(std::string msj, char color, bool newl)
             ++this->yPos;
             gotoxy(this->xPos, this->yPos);
         }
+    }
+    if (newl) {
+        this->xPos = xFrame + 1;
+        ++this->yPos;
+        gotoxy(this->xPos, this->yPos);
+    }
+}
+
+void Frame::printNum(const int& msj, char color, bool newl)
+{
+    gotoxy(this->xPos, this->yPos);
+    std::cout << msj;
+    if (newl) {
+        this->xPos = xFrame + 1;
+        ++this->yPos;
+        gotoxy(this->xPos, this->yPos);
     }
 }
