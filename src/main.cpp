@@ -15,4 +15,8 @@ int main()
 { 
     ProcesadorLotes p;
     p.iniciar();
+
+    Cursor::gotoxy(1, 25);
+    std::cout << "presione una tecla para continuar..." << std::endl;
+    std::cin.get();
 }

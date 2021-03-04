@@ -43,23 +43,32 @@ void ProcesadorLotes::ejecutarLotes()
 {
     std::string aux;
     Cursor::clrscr();
-    Frame lotes(1, 1, 10, 5, CYAN);
+    Frame lotes(1, 1, 20, 7, AMARILLO);
+    Frame actual(22, 1, 20, 7, VERDE);
+    Frame terminados(44, 1, 20, 7, CYAN);
+    
+    lotes.print("lotes pendientes:", BLANCO, true);
+    actual.print("lotes actual:", BLANCO, true);
+    terminados.print("lotes terminados:", BLANCO, true);
     while (this->lotesPendientes.size()) {
         this->loteActual = new Lote(this->lotesPendientes.front());
         this->lotesPendientes.erase(this->lotesPendientes.begin());
         
-        for (size_t i = 0; i < this->lotesPendientes.size(); ++i) {
+        lotes.rmContent();
+        lotes.print("lotes pendientes:", BLANCO, true);       
+        for (size_t i = 0; i < this->lotesPendientes.size(); ++i)
             lotes.printNum(this->lotesPendientes[i].getID(), BLANCO, true);
-        }
-        Cursor::gotoxy(1, 30);
 
-        std::cout << "Iniciando ejecución de procesos del lote "
-                  << this->loteActual->getID() << "..." << std::endl;
+        actual.printNum(this->loteActual->getID());
+        Cursor::gotoxy(1, 10);
         this->loteActual->ejecutarProcesos();
 
+        terminados.printNum(this->loteActual->getID(), BLANCO, true);
         this->lotesTerminados.push_back(*this->loteActual);
         delete this->loteActual; this->loteActual = nullptr;
     }
+    actual.rmContent();
+    actual.print("lotes actual:", BLANCO, true);
 }
 
 void ProcesadorLotes::capturarID(Lote& lote, bool(Lote::*metodo)

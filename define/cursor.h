@@ -77,6 +77,8 @@ public:
                bool newl = false);
     void print(const std::string& msj, char color = BLANCO,
                bool newl = false);
+    void rmContentLine();
+    void rmContent();
 };
 
 #endif // CURSOR_H

@@ -140,3 +140,18 @@ void Frame::printNum(const int& msj, char color, bool newl)
         gotoxy(this->xPos, this->yPos);
     }
 }
+
+void Frame::rmContentLine()
+{
+    drawXLine(this->xFrame + 1, this->yPos, this->widthFrame - 2, BLANCO, false, " ");
+    this->xPos = this->xFrame + 1;
+    --this->yPos;
+    gotoxy(this->xPos, this->yPos);
+}
+
+void Frame::rmContent()
+{
+    while (this->yPos != this->yFrame)
+        rmContentLine();
+    this->yPos = yFrame + 1;
+}
