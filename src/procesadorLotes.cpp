@@ -18,7 +18,7 @@ void ProcesadorLotes::iniciar()
     char aux = 'n';
     do {
         capturarLote();
-        std::cout << colorText(MORADO, "¿Desea capturar otro lote? s = si, "
+        std::cout << Cursor::colorText(MORADO, "¿Desea capturar otro lote? s = si, "
                                      "cualquier otra tecla = no: ");
         std::cin >> aux;
         std::cin.ignore();
@@ -60,7 +60,7 @@ void ProcesadorLotes::capturarID(Lote& lote, bool(Lote::*metodo)
 {
     std::string aux;
     bool unaVez = false;
-    std::cout << colorText(VERDE, "Ingrese el ID del lote: ");
+    std::cout << Cursor::colorText(VERDE, "Ingrese el ID del lote: ");
     while(1) {
         std::getline(std::cin, aux);
         // Si el input es correcto rompemos el búcle infinito
@@ -69,13 +69,13 @@ void ProcesadorLotes::capturarID(Lote& lote, bool(Lote::*metodo)
         }
         if (!unaVez) {
             unaVez = true;
-            rmLine();
+            Cursor::rmLine();
         }
         else
-            rmLine(2);
-        std::cout << colorText(ROJO, "ERROR: ID no válido, debe de ser un "
+            Cursor::rmLine(2);
+        std::cout << Cursor::colorText(ROJO, "ERROR: ID no válido, debe de ser un "
                                "número único entre 1 y 99999", true)
                   << std::endl;
-        std::cout << colorText(VERDE, "Ingrese el ID del lote: ");
+        std::cout << Cursor::colorText(VERDE, "Ingrese el ID del lote: ");
     }
 }

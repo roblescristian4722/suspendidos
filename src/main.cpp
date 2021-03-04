@@ -40,9 +40,10 @@ int main() {
     
     //ProcesadorLotes p;
     //p.iniciar();
-    clrscr();
+    Frame f(1, 1, 5, 3, VERDE);
+    f.clrscr();
     //drawFrame(1, 3, 10, 5, AZUL);
-    drawFrame(10, 10, 5, 10, VERDE);
+    f.print("Hola qué tal, cómo te va, me da alegría mirarte, la felicidad de hablarte", CYAN);
     //drawFrame(21, 10, 15, 10, CYAN);
     std::cin.get();
 }

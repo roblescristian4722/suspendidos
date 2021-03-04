@@ -9,9 +9,9 @@
 /home/kristo/Documents/procesamiento_por_lotes/define/cursor.h
 iostream
 -
-stdio.h
--
 regex
+-
+stdio.h
 -
 
 /home/kristo/Documents/procesamiento_por_lotes/src/cursor.cpp

@@ -16,36 +16,61 @@
 #define BLANCO '7'
 
 #include <iostream>
-#include <stdio.h>
 #include <regex>
+#include <stdio.h>
 
-// Mueve el cursor de la terminal a una coordenada x,y
-void gotoxy(int x,int y);
-// Limpia la pantalla de la terminal
-void clrscr();
-// Muestra el cursor de la terminal
-void showCursor();
-// Oculta el cursor de la terminal
-void hideCursor();
-// Retorna una cadena pintada de un color
-std::string colorText(unsigned char color, std::string msg,
-                      bool foreground = true);
-// Retorna una cadena pintada de un color
-std::string colorText(unsigned char color, char caracter,
-                      bool foreground = true);
+struct Cursor
+{
+    // Mueve el cursor de la terminal a una coordenada x,y
+    static void gotoxy(int x,int y);
+    // Limpia la pantalla de la terminal
+    static void clrscr();
+    // Muestra el cursor de la terminal
+    static void showCursor();
+    // Oculta el cursor de la terminal
+    static void hideCursor();
+    // Retorna una cadena pintada de un color
+    static std::string colorText(unsigned char color, std::string msg,
+                          bool foreground = true);
+    
+    // Elimina n cantidad de líneas en pantalla comenzando por la posición actual
+    // del puntero
+    static void rmLine(unsigned int n = 1);
+    // Dibuja una línea horizontal en la terminal
+    static void drawXLine(int x, int y, int w, char color = BLANCO,
+                   bool foreground = false, std::string  caracter = "*");
+    // Dibuja una línea vertical en la terminal
+    static void drawYLine(int x, int y, int h, char color = BLANCO,
+                   bool foreground = false, std::string  caracter = "*");
 
-// Elimina n cantidad de líneas en pantalla comenzando por la posición actual
-// del puntero
-void rmLine(unsigned int n = 1);
-// Dibuja una línea horizontal en la terminal
-void drawXLine(int x, int y, int len, char color = BLANCO,
-               std::string  caracter = "*");
-// Dibuja una línea vertical en la terminal
-void drawYLine(int x, int y, int len, char color = BLANCO,
-               std::string  caracter = "*");
-// Dibuja un marco en la terminal
-void drawFrame(int x, int y, int w, int h, char color = BLANCO,
-               std::string caracter = "*");
+};
 
+class Frame: public Cursor
+{
+private:
+    unsigned int heightFrame;
+    unsigned int widthFrame;
+    unsigned int xFrame;
+    unsigned int yFrame;
+    char contentColor;
+    char color;
+    bool foreground;
+    std::string simbol;
+    unsigned int xPos;
+    unsigned int yPos;
+
+public:
+    Frame(int x = 0, int y = 0, int w = 0, int h = 0, char color = BLANCO,
+           bool foreground = true, std::string simbol = "*");
+    ~Frame();
+
+    // Dibuja un marco en la terminal y guarda la información brindada para
+    // imprimir el contenido dentro del marco
+    void drawFrame(int x, int y, int w, int h, char color = BLANCO,
+                   bool foreground = false, std::string caracter = "*");
+    // Imprime un mensaje dentro del marco
+    void print(std::string msj, char color = BLANCO,
+               bool newl = false);
+};
 
 #endif // CURSOR_H
