@@ -76,9 +76,14 @@ public:
     void printNum(const int& msj, char color = BLANCO,
                bool newl = false);
     void print(const std::string& msj, char color = BLANCO,
-               bool newl = false);
+               bool newl = false, unsigned int fill = 0);
+    // Elimina la última línea de contenido del marco
     void rmContentLine();
+    // Elimina todo el contenido del marco
     void rmContent();
+    // Si la cadena proporcionada no llega al borde del marco se incrementa
+    // posX
+    void fillContent(const std::string& msj, unsigned int n);
 };
 
 #endif // CURSOR_H

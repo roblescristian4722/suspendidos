@@ -105,24 +105,24 @@ void Frame::drawFrame(int x, int y, int w, int h, char color, bool foreground,
     gotoxy(x + 1, y + 1);
 }
 
-void Frame::print(const std::string& msj, char color, bool newl)
+void Frame::print(const std::string& msj, char color, bool newl,
+                  unsigned int fill)
 {
     std::string aux;
     unsigned int times = msj.size() / (this->widthFrame - 2);
-    //drawFrame(this->xFrame, this->yFrame, this->widthFrame,
-      //        times + 3, this->color, this->foreground,
-        //      this->simbol);
+
     for (size_t i = 0; i < msj.size(); ++i) {
         gotoxy(this->xPos, this->yPos);
         aux = msj[i];
         std::cout << colorText(color, aux, this->foreground);
-
         if (++this->xPos == this->xFrame + this->widthFrame - 1) {
             this->xPos = xFrame + 1;
             ++this->yPos;
             gotoxy(this->xPos, this->yPos);
         }
     }
+    if (fill)
+        fillContent(msj, fill);
     if (newl) {
         this->xPos = xFrame + 1;
         ++this->yPos;
@@ -143,8 +143,8 @@ void Frame::printNum(const int& msj, char color, bool newl)
 
 void Frame::rmContentLine()
 {
-    drawXLine(this->xFrame + 1, this->yPos, this->widthFrame - 2, BLANCO, false, " ");
     this->xPos = this->xFrame + 1;
+    drawXLine(this->xPos, this->yPos, this->widthFrame - 2, BLANCO, false, " ");
     --this->yPos;
     gotoxy(this->xPos, this->yPos);
 }
@@ -154,4 +154,10 @@ void Frame::rmContent()
     while (this->yPos != this->yFrame)
         rmContentLine();
     this->yPos = yFrame + 1;
+}
+
+void Frame::fillContent(const std::string &msj, unsigned int n)
+{
+    if (msj.size() < n)
+        this->xPos = xPos + (n - msj.size() + 1);
 }

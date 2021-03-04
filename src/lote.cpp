@@ -188,24 +188,60 @@ void Lote::ejecutarProcesos()
 {
     unsigned long cont;
     std::vector<Proceso>::iterator it; 
-
+    Frame pendientes(1, 22, 38, 7, AMARILLO);
+    Frame actual(40, 22, 38, 7, VERDE);
+    Frame terminados(80, 22, 38, 7, CYAN);
+    
+    pendientes.print("procesos pendientes:", BLANCO, true);
+    pendientes.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
+    actual.print("procesos actual:", BLANCO, true);
+    actual.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
+    terminados.print("procesos terminados:", BLANCO, true);
+    terminados.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
     while (this->procPend.size()) {
         this->procActual = new Proceso(this->procPend.front());
         this->procPend.erase(this->procPend.begin());
 
+        pendientes.rmContent();
+        pendientes.print("procesos pendientes:", BLANCO, true);
+        pendientes.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
+        for (size_t i = 0; i < this->procPend.size(); ++i)
+            llenarMarco(pendientes, this->procPend[i]);
+        
+        actual.rmContent();
+        actual.print("procesos actual:", BLANCO, true);
+        actual.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
+        llenarMarco(actual, *this->procActual);
         cont = this->procActual->getTiempoMax();
-        this->tiempoTotal += 0;
-
+        this->tiempoTotal += cont;
         
         while (cont--) {
-            std::cout << "procesando " << this->procActual->getID()
-                      << "..." << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(1));        
+            std::this_thread::sleep_for(std::chrono::seconds(1));
         }
+        
         this->procActual->calculate();
-        std::cout << "resultado: " << this->procActual->getResultado()
-                  << std::endl; 
+        llenarMarco(terminados, *this->procActual);
         this->procTerm.push_back(*this->procActual);
         delete this->procActual; this->procActual = nullptr;
     }
+    actual.rmContent();
+    actual.print("procesos actual:", BLANCO, true);
+    actual.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
+
+}
+
+void Lote::llenarMarco(Frame& marco, Proceso& proc)
+{
+    marco.print(std::to_string(proc.getID()), BLANCO,
+                     false, 5);
+    marco.print(proc.getNombre(),
+                     BLANCO, false, 5);
+    marco.print(proc.getOperacion(),
+                     BLANCO, false, 5);
+    marco.print(std::to_string(proc.getTiempoMax()),
+                     BLANCO, false, 5);
+    marco.print(std::to_string(0), BLANCO,
+                     false, 5);
+    marco.print(std::to_string(0), BLANCO,
+                     true, 5);
 }

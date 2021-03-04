@@ -38,7 +38,9 @@ public:
     Lote(const Lote& lote);
     ~Lote();
     const Lote& operator =(const Lote& lote);
-   
+
+    // Imprime los datos del proceso en un marco
+    void llenarMarco(Frame& marco, Proceso& proc);
     // Imprime en pantalla los procesos pendientes de ejecución en orden
     void getProcesosPendientes();
     // Imprime en pantalla los procesos pendientes de ejecución en orden

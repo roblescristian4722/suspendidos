@@ -32,18 +32,6 @@ proceso.h
 cursor.h
 /home/kristo/Documents/procesamiento_por_lotes/define/cursor.h
 
-/home/kristo/Documents/procesamiento_por_lotes/define/procesadorLotes.h
-iostream
--
-map
--
-vector
--
-lote.h
-/home/kristo/Documents/procesamiento_por_lotes/define/lote.h
-cursor.h
-/home/kristo/Documents/procesamiento_por_lotes/define/cursor.h
-
 /home/kristo/Documents/procesamiento_por_lotes/define/proceso.h
 iostream
 -
@@ -52,7 +40,19 @@ regex
 cursor.h
 /home/kristo/Documents/procesamiento_por_lotes/define/cursor.h
 
-/home/kristo/Documents/procesamiento_por_lotes/src/procesadorLotes.cpp
-../define/procesadorLotes.h
-/home/kristo/Documents/procesamiento_por_lotes/define/procesadorLotes.h
+/home/kristo/Documents/procesamiento_por_lotes/src/lote.cpp
+../define/lote.h
+/home/kristo/Documents/procesamiento_por_lotes/define/lote.h
+../define/cursor.h
+/home/kristo/Documents/procesamiento_por_lotes/define/cursor.h
+../define/proceso.h
+/home/kristo/Documents/procesamiento_por_lotes/define/proceso.h
+chrono
+-
+cstdio
+-
+ostream
+-
+thread
+-
 
