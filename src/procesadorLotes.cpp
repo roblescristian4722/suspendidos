@@ -43,11 +43,13 @@ void ProcesadorLotes::ejecutarLotes()
 {
     std::string aux;
     Cursor::clrscr();
-    Frame lotes(1, 1, 20, 10, AMARILLO);
-    Frame actual(22, 1, 20, 10, VERDE);
-    Frame terminados(44, 1, 20, 10, CYAN);
+    Frame lotes(1, 1, 26, 10, AMARILLO);
+    Frame actual(28, 1, 20, 10, VERDE);
+    Frame terminados(50, 1, 20, 10, CYAN);
     
-    lotes.print("lotes pendientes:", BLANCO, true);
+    lotes.print("lotes pendientes: (");
+    lotes.print(std::to_string(this->lotesPendientes.size()));
+    lotes.print("):", BLANCO, true);
     actual.print("lotes actual:", BLANCO, true);
     terminados.print("lotes terminados:", BLANCO, true);
     while (this->lotesPendientes.size()) {
@@ -55,7 +57,9 @@ void ProcesadorLotes::ejecutarLotes()
         this->lotesPendientes.erase(this->lotesPendientes.begin());
         
         lotes.rmContent();
-        lotes.print("lotes pendientes:", BLANCO, true);       
+        lotes.print("lotes pendientes: (");
+        lotes.print(std::to_string(this->lotesPendientes.size()));
+        lotes.print("):", BLANCO, true);
         for (size_t i = 0; i < this->lotesPendientes.size(); ++i)
             lotes.printNum(this->lotesPendientes[i].getID(), BLANCO, true);
 

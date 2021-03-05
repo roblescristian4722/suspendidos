@@ -127,7 +127,7 @@ void Lote::capturarLote()
     // Captura de operación
     capturarCampo("Ingrese la operación a realizar: ",
                   "ERROR: La operación ingresada no es válida. El formato "
-                  "debe de ser \"int [+|-|/|%]\" int", aux,
+                  "debe de ser \"int [+|-|/|%/*]\" int", aux,
                   &Proceso::setOperacion);
     // Captura de tiempo máximo
     capturarCampo("Ingrese el tiempo máximo estimado de ejecución: ",
