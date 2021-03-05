@@ -12,10 +12,12 @@ private:
     long resultado;
     unsigned long ID;
     unsigned long tiempoMax;
+    unsigned long tiempoRes;
+    unsigned long tiempoTrans;
 public:
+    Proceso();
     Proceso(std::string nombre, std::string operacion, unsigned long ID,
             unsigned long tiempoMax);
-    Proceso(std::string tmp = "3+3");
     ~Proceso();
     
     // Obtiene el nombre del programador del proceso
@@ -26,11 +28,19 @@ public:
     const unsigned long& getID() const;
     // Obtiene el tiempo máximo estimado de ejecución del proceso (en segundos)
     const unsigned long& getTiempoMax() const;
-    const long& getResultado() const;
     // Obtiene el resultado de la operación 
+    const long& getResultado() const;
+    // Obtiene el tiempo restante
+    const unsigned long& getTiempoRes() const;
+    // Obtiene el tiepo transcurrido
+    const unsigned long& getTiempoTrans() const;
     
     // Genera el resultado de la operación
     void calculate();
+    // Asigna el tiempo restante
+    void setTiempoRes(const unsigned long& tiempoRes);
+    // Asigna el tiepo transcurrido
+    void setTiempoTrans(const unsigned long& tiempoTrans);
     // Asigna el nombre del programador del proceso
     bool setNombre(const std::string& nombre);
     // Asigna el tipo de operacion a realizar en el proceso

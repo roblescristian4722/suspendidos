@@ -59,8 +59,10 @@ void Lote::iniciarCaptura()
     procActual = nullptr;
     do {
         capturarLote();
-        std::cout << Cursor::Cursor::colorText(CYAN, "¿Desea capturar otro proceso? s = si, "
-                                     "cualquier otra tecla = no: ");
+        std::cout << Cursor::Cursor::colorText(CYAN, "¿Desea capturar otro "
+                                                     "proceso? s = si, "
+                                                     "cualquier otra tecla "
+                                                     "= no: ");
         std::cin >> aux;
         std::cin.ignore();
     } while (aux == 's' || aux == 'S');
@@ -146,16 +148,16 @@ void Lote::capturarCampo(std::string msj, std::string msjError,
     while(1) {
         std::getline(std::cin, aux);
         // Si el input es correcto rompemos el búcle infinito
-        if ((proc.*metodo)(aux, IDs)) {
+        if ((proc.*metodo)(aux, IDs))
             break;
-        }
         if (!unaVez) {
             unaVez = true;
             Cursor::rmLine();
         }
         else
             Cursor::rmLine(2);
-        std::cout << Cursor::Cursor::colorText(ROJO, msjError, true) << std::endl;
+        std::cout << Cursor::Cursor::colorText(ROJO, msjError, true)
+                  << std::endl;
         std::cout << Cursor::Cursor::colorText(VERDE, msj);
     }
 }
@@ -170,9 +172,8 @@ void Lote::capturarCampo(std::string msj, std::string msjError,
     while(1) {
         std::getline(std::cin, aux);
         // Si el input es correcto rompemos el búcle infinito
-        if ((proc.*metodo)(aux)) {
+        if ((proc.*metodo)(aux))
             break;
-        }
         if (!unaVez) {
             unaVez = true;
             Cursor::rmLine();
@@ -187,60 +188,67 @@ void Lote::capturarCampo(std::string msj, std::string msjError,
 void Lote::ejecutarProcesos()
 {
     unsigned long cont;
-    std::vector<Proceso>::iterator it; 
-    Frame pendientes(1, 12, 38, 7, AMARILLO);
-    Frame actual(40, 12, 38, 7, VERDE);
-    Frame terminados(80, 12, 38, 7, CYAN);
+    unsigned long seg;
+    std::vector<Proceso>::iterator it;
+    Frame pendientes(1, 12, 15, 15, AMARILLO);
+    Frame actual(17, 12, 39, 15, VERDE);
+    Frame terminados(57, 12, 33, 15, CYAN);
     
-    pendientes.print("procesos pendientes:", BLANCO, true);
-    pendientes.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
+    pendientes.print("procesos     pendientes:", BLANCO, true);
+    pendientes.print("NOM   TMPM  ", BLANCO, true);
     actual.print("procesos actual:", BLANCO, true);
-    actual.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
+    actual.print("ID    NOM   OP    TMPM  TMPR  TMPT ", BLANCO, true);
     terminados.print("procesos terminados:", BLANCO, true);
-    terminados.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
+    terminados.print("ID    NOM   OP    TMPM RES  ", BLANCO, true);
     while (this->procPend.size()) {
         this->procActual = new Proceso(this->procPend.front());
         this->procPend.erase(this->procPend.begin());
 
         pendientes.rmContent();
-        pendientes.print("procesos pendientes:", BLANCO, true);
-        pendientes.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
+        pendientes.print("procesos     pendientes:", BLANCO, true);
+        pendientes.print("NOM   TMPM  ", BLANCO, true);
         for (size_t i = 0; i < this->procPend.size(); ++i)
-            llenarMarco(pendientes, this->procPend[i]);
+            llenarMarco(pendientes, this->procPend[i], false, false);
                
         cont = this->procActual->getTiempoMax();
         this->tiempoTotal += cont;
+        seg = 0;
         while (cont--) {
             actual.rmContent();
-            actual.print("proceso actual:", BLANCO, true);        
-            actual.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
-            llenarMarco(actual, *this->procActual);
+            actual.print("proceso actual:", BLANCO, true);
+            actual.print("ID    NOM   OP    TMPM  TMPR  TMPT ", BLANCO, true);
+            llenarMarco(actual, *this->procActual, true, false);
             std::cout.flush();
             std::this_thread::sleep_for(std::chrono::seconds(1));
+            ++seg;
+            this->procActual->setTiempoRes(cont);
+            this->procActual->setTiempoTrans(seg);
         }
 
         this->procActual->calculate();
-        llenarMarco(terminados, *this->procActual);
+        llenarMarco(terminados, *this->procActual, false, true);
         this->procTerm.push_back(*this->procActual);
         delete this->procActual; this->procActual = nullptr;
     }
     actual.rmContent();
     actual.print("procesos actual:", BLANCO, true);
-    actual.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
+    actual.print("ID    NOM   OP    TMPM  TMPR  TMPT ", BLANCO, true);
 }
 
-void Lote::llenarMarco(Frame& marco, Proceso& proc)
+void Lote::llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term)
 {
-    marco.print(std::to_string(proc.getID()), BLANCO,
-                     false, 5);
-    marco.print(proc.getNombre(),
-                     BLANCO, false, 5);
-    marco.print(proc.getOperacion(),
-                     BLANCO, false, 5);
-    marco.print(std::to_string(proc.getTiempoMax()),
-                     BLANCO, false, 5);
-    marco.print(std::to_string(0), BLANCO,
-                     false, 5);
-    marco.print(std::to_string(0), BLANCO,
-                     true, 5);
+    marco.print(proc.getNombre(), BLANCO, false, 5);
+    if (!actual && !term)
+        marco.print(std::to_string(proc.getTiempoMax()), BLANCO, false, 5);
+    else if (actual || term) {
+        marco.print(std::to_string(proc.getID()), BLANCO, false, 5);
+        marco.print(proc.getOperacion(), BLANCO, false, 5);
+        marco.print(std::to_string(proc.getTiempoMax()), BLANCO, false, 5);
+    }
+    if (actual) {
+        marco.print(std::to_string(proc.getTiempoRes()), BLANCO, false, 5);
+        marco.print(std::to_string(proc.getTiempoTrans()), BLANCO, true, 5);
+    }
+    else if (term)
+        marco.print(std::to_string(proc.getResultado()), BLANCO, true, 5);
 }

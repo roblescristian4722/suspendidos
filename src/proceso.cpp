@@ -2,10 +2,11 @@
 
 Proceso::Proceso(std::string nombre, std::string operacion, unsigned long ID, 
                  unsigned long tiempoMax) : nombre(nombre), ID(ID),
-                 tiempoMax(tiempoMax), operacion(operacion) {}
+                 tiempoMax(tiempoMax), operacion(operacion),
+                 tiempoRes(tiempoMax), tiempoTrans(0) {}
 
-Proceso::Proceso(std::string tmp): operacion(tmp) 
-{ this->resultado = 0; }
+Proceso::Proceso()
+{ this->tiempoTrans = 0; }
 
 Proceso::~Proceso() {}
 
@@ -58,7 +59,9 @@ bool Proceso::setTiempoMax(const std::string& tiempoMax)
     std::regex validacion("[0-9]{1,4}");
     if (std::regex_match(tiempoMax, validacion)){
         if (stoul(tiempoMax) > 0 && stoul(tiempoMax) <= 3600) {
+            this->tiempoTrans = 0;
             this->tiempoMax = stoul(tiempoMax);
+            this->tiempoRes = stoul(tiempoMax);
             return true;
         }
     }
@@ -125,3 +128,12 @@ void Proceso::calculate()
         break;
     }
 }
+
+const unsigned long& Proceso::getTiempoTrans() const
+{ return this->tiempoTrans; }
+const unsigned long& Proceso::getTiempoRes() const
+{ return this->tiempoRes; }
+void Proceso::setTiempoTrans(const unsigned long& tiempoTrans)
+{ this->tiempoTrans = tiempoTrans; }
+void Proceso::setTiempoRes(const unsigned long& tiempoRes)
+{ this->tiempoRes = tiempoRes; }
