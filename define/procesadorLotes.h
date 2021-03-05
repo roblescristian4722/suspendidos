@@ -13,7 +13,6 @@ private:
     Lote* loteActual;
     std::vector<Lote>lotesTerminados;
     std::map<std::string, bool> IDsUsados;
-    unsigned long tiempoTotal;
 
     // Ejecuta un búcle hasta que la captura del lote sea válida (hasta que se
     // retorne un true)

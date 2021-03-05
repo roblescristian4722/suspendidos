@@ -9,7 +9,6 @@
 Lote::Lote()
 { 
     procActual = nullptr;
-    tiempoTotal = 0;
 }
 
 // Constructor copy
@@ -18,7 +17,6 @@ Lote::Lote(const Lote& lote)
 
     this->ID = lote.ID;
     this->IDsUsados = lote.IDsUsados;
-    this->tiempoTotal = lote.tiempoTotal;
     this->procPend = lote.procPend;
     this->procTerm = lote.procTerm;
     this->procActual = lote.procActual != nullptr
@@ -33,7 +31,6 @@ const Lote& Lote::operator=(const Lote &lote)
 {
     this->ID = lote.ID;
     this->IDsUsados = lote.IDsUsados;
-    this->tiempoTotal = lote.tiempoTotal;
     this->procPend = lote.procPend;
     this->procTerm = lote.procTerm;
     this->procActual = lote.procActual != nullptr
@@ -200,6 +197,8 @@ void Lote::ejecutarProcesos()
     actual.print("ID    NOM   OP    TMPM  TMPR  TMPT ", BLANCO, true);
     terminados.print("procesos terminados:", BLANCO, true);
     terminados.print("ID    NOM   OP    TMPM RES  ", BLANCO, true);
+    Cursor::gotoxy(72, 3);
+    std::cout << "Tiempo total transcurrido (segundos): ";
     while (this->procPend.size()) {
         this->procActual = new Proceso(this->procPend.front());
         this->procPend.erase(this->procPend.begin());
@@ -211,16 +210,18 @@ void Lote::ejecutarProcesos()
             llenarMarco(pendientes, this->procPend[i], false, false);
                
         cont = this->procActual->getTiempoMax();
-        this->tiempoTotal += cont;
         seg = 0;
         while (cont--) {
             actual.rmContent();
             actual.print("proceso actual:", BLANCO, true);
             actual.print("ID    NOM   OP    TMPM  TMPR  TMPT ", BLANCO, true);
             llenarMarco(actual, *this->procActual, true, false);
+            Cursor::gotoxy(72, 4);
+            std::cout << Lote::tiempoTotal;
             std::cout.flush();
             std::this_thread::sleep_for(std::chrono::seconds(1));
             ++seg;
+            ++Lote::tiempoTotal;
             this->procActual->setTiempoRes(cont);
             this->procActual->setTiempoTrans(seg);
         }
@@ -230,6 +231,8 @@ void Lote::ejecutarProcesos()
         this->procTerm.push_back(*this->procActual);
         delete this->procActual; this->procActual = nullptr;
     }
+    Cursor::gotoxy(72, 4);
+    std::cout << Lote::tiempoTotal;
     actual.rmContent();
     actual.print("procesos actual:", BLANCO, true);
     actual.print("ID    NOM   OP    TMPM  TMPR  TMPT ", BLANCO, true);

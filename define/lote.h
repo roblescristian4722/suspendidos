@@ -17,7 +17,7 @@ private:
     Proceso* procActual;
     std::vector<Proceso> procTerm;
     std::map<std::string, bool> IDsUsados;
-    unsigned long tiempoTotal;
+    unsigned long tiempoTotal = 0;
 
     // Establece el ID del proceso, retorna true si el proceso fue exitoso y 
     // retorna false en caso de que el ID sea incorrecto o ya esté en uso

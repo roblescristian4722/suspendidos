@@ -3,7 +3,6 @@
 ProcesadorLotes::ProcesadorLotes()
 {
     this->loteActual = nullptr;
-    this->tiempoTotal = 0;
 }
 
 ProcesadorLotes::~ProcesadorLotes()
@@ -18,8 +17,9 @@ void ProcesadorLotes::iniciar()
     char aux = 'n';
     do {
         capturarLote();
-        std::cout << Cursor::colorText(MORADO, "¿Desea capturar otro lote? s = si, "
-                                     "cualquier otra tecla = no: ");
+        std::cout << Cursor::colorText(MORADO,
+                                       "¿Desea capturar otro lote? s = si, "
+                                       "cualquier otra tecla = no: ");
         std::cin >> aux;
         std::cin.ignore();
     } while (aux == 's' || aux == 'S');
@@ -46,7 +46,7 @@ void ProcesadorLotes::ejecutarLotes()
     Frame lotes(1, 1, 26, 10, AMARILLO);
     Frame actual(28, 1, 20, 10, VERDE);
     Frame terminados(50, 1, 20, 10, CYAN);
-    
+ 
     lotes.print("lotes pendientes: (");
     lotes.print(std::to_string(this->lotesPendientes.size()));
     lotes.print("):", BLANCO, true);
@@ -64,7 +64,6 @@ void ProcesadorLotes::ejecutarLotes()
             lotes.printNum(this->lotesPendientes[i].getID(), BLANCO, true);
 
         actual.printNum(this->loteActual->getID());
-        Cursor::gotoxy(1, 10);
         this->loteActual->ejecutarProcesos();
 
         terminados.printNum(this->loteActual->getID(), BLANCO, true);
@@ -94,8 +93,8 @@ void ProcesadorLotes::capturarID(Lote& lote, bool(Lote::*metodo)
         }
         else
             Cursor::rmLine(2);
-        std::cout << Cursor::colorText(ROJO, "ERROR: ID no válido, debe de ser un "
-                               "número único entre 1 y 99999", true)
+        std::cout << Cursor::colorText(ROJO, "ERROR: ID no válido,"
+                           "debe de ser un número único entre 1 y 99999", true)
                   << std::endl;
         std::cout << Cursor::colorText(VERDE, "Ingrese el ID del lote: ");
     }
