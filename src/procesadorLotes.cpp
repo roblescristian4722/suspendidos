@@ -43,9 +43,9 @@ void ProcesadorLotes::ejecutarLotes()
 {
     std::string aux;
     Cursor::clrscr();
-    Frame lotes(1, 1, 20, 7, AMARILLO);
-    Frame actual(22, 1, 20, 7, VERDE);
-    Frame terminados(44, 1, 20, 7, CYAN);
+    Frame lotes(1, 1, 20, 10, AMARILLO);
+    Frame actual(22, 1, 20, 10, VERDE);
+    Frame terminados(44, 1, 20, 10, CYAN);
     
     lotes.print("lotes pendientes:", BLANCO, true);
     actual.print("lotes actual:", BLANCO, true);

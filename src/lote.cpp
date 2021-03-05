@@ -113,6 +113,10 @@ bool Lote::setID(const std::string&ID, std::map<std::string, bool>* IDs)
 void Lote::capturarLote()
 {
     Proceso aux;
+    // Captura de ID
+    capturarCampo("Ingrese el ID del proceso: ",
+                  "ERROR: el ID no es válido, debe de ser un número positivo "
+                  "del 1 al 99999", aux, &Proceso::setID, &this->IDsUsados);
     // Captura nombre
     capturarCampo("Ingrese el nombre del programador: ",
                   "ERROR: el nombre debe de contener al menos 3 caracteres "
@@ -123,10 +127,6 @@ void Lote::capturarLote()
                   "ERROR: La operación ingresada no es válida. El formato "
                   "debe de ser \"int [+|-|/|%]\" int", aux,
                   &Proceso::setOperacion);
-    // Captura de ID
-    capturarCampo("Ingrese el ID del proceso: ",
-                  "ERROR: el ID no es válido, debe de ser un número positivo "
-                  "del 1 al 99999", aux, &Proceso::setID, &this->IDsUsados);
     // Captura de tiempo máximo
     capturarCampo("Ingrese el tiempo máximo estimado de ejecución: ",
                   "ERROR: el tiempo máximo de ejecución debe de ser un número "
@@ -188,9 +188,9 @@ void Lote::ejecutarProcesos()
 {
     unsigned long cont;
     std::vector<Proceso>::iterator it; 
-    Frame pendientes(1, 22, 38, 7, AMARILLO);
-    Frame actual(40, 22, 38, 7, VERDE);
-    Frame terminados(80, 22, 38, 7, CYAN);
+    Frame pendientes(1, 12, 38, 7, AMARILLO);
+    Frame actual(40, 12, 38, 7, VERDE);
+    Frame terminados(80, 12, 38, 7, CYAN);
     
     pendientes.print("procesos pendientes:", BLANCO, true);
     pendientes.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
@@ -207,18 +207,18 @@ void Lote::ejecutarProcesos()
         pendientes.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
         for (size_t i = 0; i < this->procPend.size(); ++i)
             llenarMarco(pendientes, this->procPend[i]);
-        
-        actual.rmContent();
-        actual.print("procesos actual:", BLANCO, true);
-        actual.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
-        llenarMarco(actual, *this->procActual);
+               
         cont = this->procActual->getTiempoMax();
         this->tiempoTotal += cont;
-        
         while (cont--) {
+            actual.rmContent();
+            actual.print("proceso actual:", BLANCO, true);        
+            actual.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
+            llenarMarco(actual, *this->procActual);
+            std::cout.flush();
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        
+
         this->procActual->calculate();
         llenarMarco(terminados, *this->procActual);
         this->procTerm.push_back(*this->procActual);
@@ -227,7 +227,6 @@ void Lote::ejecutarProcesos()
     actual.rmContent();
     actual.print("procesos actual:", BLANCO, true);
     actual.print("ID    NOM   OP    TMPT  TMPR  TMPC ", BLANCO, true);
-
 }
 
 void Lote::llenarMarco(Frame& marco, Proceso& proc)

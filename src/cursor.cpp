@@ -160,4 +160,5 @@ void Frame::fillContent(const std::string &msj, unsigned int n)
 {
     if (msj.size() < n)
         this->xPos = xPos + (n - msj.size() + 1);
+    gotoxy(this->xPos, this->yPos);
 }
