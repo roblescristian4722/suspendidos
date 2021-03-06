@@ -16,8 +16,8 @@ int main()
     ProcesadorLotes p;
     p.iniciar();
     
-    Cursor::gotoxy(1, 29);
+    Cursor::gotoxy(1, 31);
     std::cout << "Presione ENTER para continuar..." << std::endl;
     std::cin.get();
-    p.mostrarResultados();
+    p.mostrarResultados(1, 33);
 }

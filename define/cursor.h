@@ -80,7 +80,7 @@ public:
     // Elimina la última línea de contenido del marco
     void rmContentLine();
     // Elimina todo el contenido del marco
-    void rmContent();
+    void rmContent(bool wipe = false);
     // Si la cadena proporcionada no llega al borde del marco se incrementa
     // posX
     void fillContent(const std::string& msj, unsigned int n);

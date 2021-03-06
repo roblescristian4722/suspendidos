@@ -88,6 +88,8 @@ void Lote::getProcesosTerminados()
                   << "Nombre: " << this->procTerm[i].getNombre() << std::endl
                   << "Operación: " << this->procTerm[i].getOperacion()
                   << std::endl
+                  << "Resultado: " << this->procTerm[i].getResultado()
+                  << std::endl
                   << "Tiempo: " << this->procTerm[i].getTiempoMax()
                   << std::endl << std::endl;
     }
@@ -187,21 +189,11 @@ void Lote::capturarCampo(std::string msj, std::string msjError,
 void Lote::ejecutarProcesos()
 {
     unsigned long cont;
-    unsigned long seg;
     Frame pendientes(1, 12, FIELD_WIDTH * 2, 15, AMARILLO);
     Frame actual(FIELD_WIDTH * 2 + 2, 12, FIELD_WIDTH * 6, 15, VERDE);
     Frame terminados(FIELD_WIDTH * 8 + 3, 12, FIELD_WIDTH * 5, 15, CYAN);
-    
-    pendientes.rmContent();
-    actual.rmContent();
-    terminados.rmContent();
-    pendientes.print("procesos     pendientes:", BLANCO, true);
-    pendientes.print("NOM     TMPM    ", BLANCO, true);
-    actual.print("procesos actual:", BLANCO, true);
-    actual.print("NOM     ID      OP      TMPM    TMPR    TMPT   ",
-                 BLANCO, true);
-    terminados.print("procesos terminados:", BLANCO, true);
-    terminados.print("NOM     ID      OP      TMPM    RES     ", BLANCO, true);
+   
+    imprimirVentanas(&pendientes, &actual, &terminados);
     Cursor::gotoxy(72, 3);
     std::cout << "Tiempo total transcurrido (segundos): ";
     while (this->procPend.size()) {
@@ -209,18 +201,14 @@ void Lote::ejecutarProcesos()
         this->procPend.erase(this->procPend.begin());
 
         pendientes.rmContent();
-        pendientes.print("procesos      pendientes:", BLANCO, true);
-        pendientes.print("NOM     TMPM    ", BLANCO, true);
+        imprimirVentanas(&pendientes);
         for (size_t i = 0; i < this->procPend.size(); ++i)
             llenarMarco(pendientes, this->procPend[i], false, false);
                
         cont = this->procActual->getTiempoMax();
-        seg = 0;
         while (cont--) {
             actual.rmContent();
-            actual.print("proceso actual:", BLANCO, true);
-            actual.print("NOM     ID      OP      TMPM    TMPR    TMPT    ",
-                         BLANCO, true);
+            imprimirVentanas(nullptr, &actual);
             llenarMarco(actual, *this->procActual, true, false);
             Cursor::gotoxy(72, 4);
             std::cout << "          ";
@@ -228,10 +216,10 @@ void Lote::ejecutarProcesos()
             std::cout << Lote::tiempoTotal;
             std::cout.flush();
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            ++seg;
             ++Lote::tiempoTotal;
             this->procActual->setTiempoRes(cont);
-            this->procActual->setTiempoTrans(seg);
+            this->procActual->setTiempoTrans(
+                                       this->procActual->getTiempoTrans() + 1);
         }
 
         this->procActual->calculate();
@@ -241,10 +229,10 @@ void Lote::ejecutarProcesos()
     }
     Cursor::gotoxy(72, 4);
     std::cout << Lote::tiempoTotal;
+    pendientes.rmContent();
     actual.rmContent();
-    actual.print("procesos actual:", BLANCO, true);
-    actual.print("NOM     ID      OP      TMPM    TMPR    TMPT    ",
-                 BLANCO, true);
+    terminados.rmContent();
+    imprimirVentanas(&pendientes, &actual, &terminados);
 }
 
 void Lote::llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term)
@@ -268,4 +256,21 @@ void Lote::llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term)
     else if (term)
         marco.print(std::to_string(proc.getResultado()), BLANCO, true,
                     FIELD_WIDTH);
+}
+
+void Lote::imprimirVentanas(Frame* pend, Frame* act, Frame* term)
+{
+    if (pend) {
+        pend->print("procesos      pendientes:", BLANCO, true);
+        pend->print("NOM     TMPM    ", BLANCO, true);
+    }
+    if (act) {
+        act->print("procesos actual:", BLANCO, true);
+        act->print("NOM     ID      OP      TMPM    TMPR    TMPT    ",
+                   BLANCO, true);
+    }
+    if (term){
+        term->print("procesos terminados:", BLANCO, true);
+        term->print("NOM     ID      OP      TMPM    RES     ", BLANCO, true);
+    }
 }

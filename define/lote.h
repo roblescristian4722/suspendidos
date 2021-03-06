@@ -60,6 +60,9 @@ public:
     void ejecutarProcesos();
     // Función que comienza la captura de procesos
     void iniciarCaptura();
+    // Inicializa las 3 ventanas para la ejecición de procesos
+    void imprimirVentanas(Frame* pend = nullptr, Frame* act = nullptr,
+                          Frame* term = nullptr);
 };
 
 #endif // LOTE_H
