@@ -54,7 +54,7 @@ void ProcesadorLotes::ejecutarLotes()
     lotes.print("lotes pendientes: (");
     lotes.print(std::to_string(this->lotesPendientes.size()));
     lotes.print("):", BLANCO, true);
-    actual.print("lotes actual:", BLANCO, true);
+    actual.print("lote actual:", BLANCO, true);
     terminados.print("lotes terminados:", BLANCO, true);
     while (this->lotesPendientes.size()) {
         this->loteActual = new Lote(this->lotesPendientes.front());
@@ -75,5 +75,5 @@ void ProcesadorLotes::ejecutarLotes()
         delete this->loteActual; this->loteActual = nullptr;
     }
     actual.rmContent();
-    actual.print("lotes actual:", BLANCO, true);
+    actual.print("lote actual:", BLANCO, true);
 }

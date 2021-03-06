@@ -12,7 +12,6 @@ private:
     std::vector<Lote> lotesPendientes;
     Lote* loteActual;
     std::vector<Lote>lotesTerminados;
-    std::map<std::string, bool> IDsUsados;
 
     // Se itera por el vector de lotes pendientes y se ejecutan en orden para
     // después guardarlos en el vector de lotes terminados

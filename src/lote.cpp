@@ -7,6 +7,7 @@
 #include <thread>
 
 unsigned long Lote::tiempoTotal = 0;
+std::map<std::string, bool> Lote::IDs;
 
 Lote::Lote()
 { 
@@ -18,7 +19,6 @@ Lote::Lote(const Lote& lote)
 {
 
     this->ID = lote.ID;
-    this->IDsUsados = lote.IDsUsados;
     this->procPend = lote.procPend;
     this->procTerm = lote.procTerm;
     this->procActual = lote.procActual != nullptr
@@ -32,7 +32,6 @@ Lote::Lote(const Lote& lote)
 const Lote& Lote::operator=(const Lote &lote)
 {
     this->ID = lote.ID;
-    this->IDsUsados = lote.IDsUsados;
     this->procPend = lote.procPend;
     this->procTerm = lote.procTerm;
     this->procActual = lote.procActual != nullptr
@@ -102,7 +101,7 @@ void Lote::capturarProceso()
     // Captura de ID
     capturarCampo("Ingrese el ID del proceso: ",
                   "ERROR: el ID no es válido, debe de ser un número positivo "
-                  "del 1 al 99999", aux, &Proceso::setID, &this->IDsUsados);
+                  "del 1 al 99999", aux, &Proceso::setID, &Lote::IDs);
     // Captura nombre
     capturarCampo("Ingrese el nombre del programador: ",
                   "ERROR: el nombre debe de contener al menos 3 caracteres "

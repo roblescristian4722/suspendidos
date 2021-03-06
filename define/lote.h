@@ -18,7 +18,7 @@ private:
     std::vector<Proceso> procPend;
     Proceso* procActual;
     std::vector<Proceso> procTerm;
-    std::map<std::string, bool> IDsUsados;
+    static std::map<std::string, bool> IDs;
     static unsigned long tiempoTotal;
 
     // Establece el ID del proceso, retorna true si el proceso fue exitoso y 
@@ -27,6 +27,7 @@ private:
                        Proceso& proc,
                        bool(Proceso::*metodo)(const std::string&));
     // Sobrecarga de capturar campo que tiene un parámetro extra en el que se
+    //
     // brinda un map para verificar que el ID capturado sea único
     void capturarCampo(std::string msj, std::string msjError,
                        Proceso& proc,
