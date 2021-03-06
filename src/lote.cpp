@@ -52,12 +52,14 @@ Lote::~Lote()
     this->procActual = nullptr;
 }
 
-void Lote::iniciarCaptura()
+bool Lote::iniciarCaptura()
 {
     char aux = 'n';
     procActual = nullptr;
     do {
-        capturarLote();
+        if (this->procPend.size() == BATCH_MAX_CAPACITY)
+            return true;
+        capturarProceso();
         std::cout << Cursor::Cursor::colorText(CYAN, "¿Desea capturar otro "
                                                      "proceso? s = si, "
                                                      "cualquier otra tecla "
@@ -65,20 +67,11 @@ void Lote::iniciarCaptura()
         std::cin >> aux;
         std::cin.ignore();
     } while (aux == 's' || aux == 'S');
+    return false;
 }
 
-void Lote::getProcesosPendientes()
-{
-    for (size_t i = 0; i < this->procPend.size(); ++i) {
-        std::cout << "Proceso #" << i + 1 << std::endl
-                  << "ID: " << this->procPend[i].getID() << std::endl
-                  << "Nombre: " << this->procPend[i].getNombre() << std::endl
-                  << "Operación: " << this->procPend[i].getOperacion()
-                  << std::endl
-                  << "Tiempo: " << this->procPend[i].getTiempoMax()
-                  << std::endl << std::endl;
-    }
-}
+std::vector<Proceso>& Lote::getProcesosPendientes() const
+{ return this->getProcesosPendientes(); }
 
 void Lote::getProcesosTerminados()
 {
@@ -87,7 +80,6 @@ void Lote::getProcesosTerminados()
                   << "ID: " << this->procTerm[i].getID() << std::endl
                   << "Nombre: " << this->procTerm[i].getNombre() << std::endl
                   << "Operación: " << this->procTerm[i].getOperacion()
-                  << std::endl
                   << "Resultado: " << this->procTerm[i].getResultado()
                   << std::endl
                   << "Tiempo: " << this->procTerm[i].getTiempoMax()
@@ -101,19 +93,10 @@ Proceso* Lote::getProcesoActual() const
 const unsigned long& Lote::getID() const
 { return this->ID; }
 
-bool Lote::setID(const std::string&ID, std::map<std::string, bool>* IDs)
-{
-    std::regex validacion("[1-9][0-9]{0,4}");
-    if (std::regex_match(ID, validacion))
-        if (IDs->find(ID) == IDs->end()) {
-            (*IDs)[ID] = true;
-            this->ID = std::stoul(ID);
-            return true;
-        }
-    return false;
-}
+void Lote::setID(const unsigned long &ID)
+{ this->ID = ID; }
 
-void Lote::capturarLote()
+void Lote::capturarProceso()
 {
     Proceso aux;
     // Captura de ID

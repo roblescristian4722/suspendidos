@@ -26,30 +26,21 @@ void ProcesadorLotes::mostrarResultados(unsigned int x, unsigned int y)
 
 void ProcesadorLotes::iniciar()
 {
-    char aux = 'n';
-    do {
-        capturarLote();
-        std::cout << Cursor::colorText(MORADO,
-                                       "¿Desea capturar otro lote? s = si, "
-                                       "cualquier otra tecla = no: ");
-        std::cin >> aux;
-        std::cin.ignore();
-    } while (aux == 's' || aux == 'S');
+    Lote *aux;
+    unsigned int cont = 1;
+    bool overflow = false;
+
+    do{
+        aux = new Lote;
+        aux->setID(cont);
+        overflow = aux->iniciarCaptura();
+        ++cont;
+        this->lotesPendientes.push_back(*aux);
+        delete aux;
+        aux = nullptr;
+    }while(overflow);
+
     ejecutarLotes();
-
-}
-
-void ProcesadorLotes::capturarLote()
-{
-    Lote aux;
-
-    // Se captura el ID del lote
-    capturarID(aux, &Lote::setID, &this->IDsUsados);
-    std::cout << "Iniciando captura de procesos del lote " 
-              << aux.getID() << "..." << std::endl;
-    aux.iniciarCaptura();
-    // Se añade a la cola de lotes pendientes
-    this->lotesPendientes.push_back(aux);
 }
 
 void ProcesadorLotes::ejecutarLotes()
@@ -85,30 +76,4 @@ void ProcesadorLotes::ejecutarLotes()
     }
     actual.rmContent();
     actual.print("lotes actual:", BLANCO, true);
-}
-
-void ProcesadorLotes::capturarID(Lote& lote, bool(Lote::*metodo)
-                              (const std::string&, std::map<std::string,bool>*),
-                               std::map<std::string, bool>* IDs)
-{
-    std::string aux;
-    bool unaVez = false;
-    std::cout << Cursor::colorText(VERDE, "Ingrese el ID del lote: ");
-    while(1) {
-        std::getline(std::cin, aux);
-        // Si el input es correcto rompemos el búcle infinito
-        if ((lote.*metodo)(aux, IDs)) {
-            break;
-        }
-        if (!unaVez) {
-            unaVez = true;
-            Cursor::rmLine();
-        }
-        else
-            Cursor::rmLine(2);
-        std::cout << Cursor::colorText(ROJO, "ERROR: ID no válido,"
-                           "debe de ser un número único entre 1 y 99999", true)
-                  << std::endl;
-        std::cout << Cursor::colorText(VERDE, "Ingrese el ID del lote: ");
-    }
 }

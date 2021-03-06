@@ -9,6 +9,7 @@
 #include "proceso.h"
 #include "cursor.h"
 #define FIELD_WIDTH 8
+#define BATCH_MAX_CAPACITY 5
 
 class Lote
 {
@@ -43,7 +44,7 @@ public:
     // Imprime los datos del proceso en un marco
     void llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term);
     // Imprime en pantalla los procesos pendientes de ejecución en orden
-    void getProcesosPendientes();
+    std::vector<Proceso>& getProcesosPendientes() const;
     // Imprime en pantalla los procesos pendientes de ejecución en orden
     void getProcesosTerminados();
     // Retorna un puntero hacia el proceso en ejecución
@@ -51,15 +52,15 @@ public:
     // Retorna el ID del lote
     const unsigned long& getID() const;
     // Establece el ID del lote
-    bool setID(const std::string& ID, std::map<std::string,bool>* IDs); 
+    void setID(const unsigned long& ID); 
     // Función genérica que llama a los setters de un proceso, se ejecuta de
     // en un bucle hasta que el setter retorne true
-    void capturarLote();
+    void capturarProceso();
     // Se itera por la lista de procesos pendientes y se ejecutan de en orden
     // de uno en uno
     void ejecutarProcesos();
     // Función que comienza la captura de procesos
-    void iniciarCaptura();
+    bool iniciarCaptura();
     // Inicializa las 3 ventanas para la ejecición de procesos
     void imprimirVentanas(Frame* pend = nullptr, Frame* act = nullptr,
                           Frame* term = nullptr);

@@ -14,14 +14,6 @@ private:
     std::vector<Lote>lotesTerminados;
     std::map<std::string, bool> IDsUsados;
 
-    // Ejecuta un búcle hasta que la captura del lote sea válida (hasta que se
-    // retorne un true)
-    void capturarLote();
-    // Captura el ID de un lote, se ejecuta hasta que la captura del ID sea
-    // correcta (hasta que el setID del lote retorne true)
-    void capturarID(Lote& lote, bool(Lote::*metodo)
-                    (const std::string&, std::map<std::string,bool>*),
-                    std::map<std::string, bool>* IDs);
     // Se itera por el vector de lotes pendientes y se ejecutan en orden para
     // después guardarlos en el vector de lotes terminados
     void ejecutarLotes();
