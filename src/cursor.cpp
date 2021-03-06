@@ -151,14 +151,21 @@ void Frame::rmContentLine()
 
 void Frame::rmContent()
 {
-    while (this->yPos != this->yFrame)
-        rmContentLine();
-    this->yPos = yFrame + 1;
+    if ((this->xPos == this->xFrame + 1) && (this->yPos == this->yFrame + 1)) {
+        for (size_t i = yPos; i < heightFrame - 2; ++i)
+            drawXLine(this->xPos, this->yPos, this->widthFrame - 2, BLANCO,
+                      false, " ");
+    }
+    else {
+        while (this->yPos != this->yFrame)
+            rmContentLine();
+        this->yPos = yFrame + 1;
+    }
 }
 
 void Frame::fillContent(const std::string &msj, unsigned int n)
 {
     if (msj.size() < n)
-        this->xPos = xPos + (n - msj.size() + 1);
+        this->xPos = xPos + (n - msj.size());
     gotoxy(this->xPos, this->yPos);
 }

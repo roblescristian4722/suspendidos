@@ -6,6 +6,8 @@
 #include <ostream>
 #include <thread>
 
+unsigned long Lote::tiempoTotal = 0;
+
 Lote::Lote()
 { 
     procActual = nullptr;
@@ -74,7 +76,7 @@ void Lote::getProcesosPendientes()
                   << "Operación: " << this->procPend[i].getOperacion()
                   << std::endl
                   << "Tiempo: " << this->procPend[i].getTiempoMax()
-                  << std::endl;
+                  << std::endl << std::endl;
     }
 }
 
@@ -87,7 +89,7 @@ void Lote::getProcesosTerminados()
                   << "Operación: " << this->procTerm[i].getOperacion()
                   << std::endl
                   << "Tiempo: " << this->procTerm[i].getTiempoMax()
-                  << std::endl;
+                  << std::endl << std::endl;
     }
 }
 
@@ -186,17 +188,20 @@ void Lote::ejecutarProcesos()
 {
     unsigned long cont;
     unsigned long seg;
-    std::vector<Proceso>::iterator it;
-    Frame pendientes(1, 12, 15, 15, AMARILLO);
-    Frame actual(17, 12, 39, 15, VERDE);
-    Frame terminados(57, 12, 33, 15, CYAN);
+    Frame pendientes(1, 12, FIELD_WIDTH * 2, 15, AMARILLO);
+    Frame actual(FIELD_WIDTH * 2 + 2, 12, FIELD_WIDTH * 6, 15, VERDE);
+    Frame terminados(FIELD_WIDTH * 8 + 3, 12, FIELD_WIDTH * 5, 15, CYAN);
     
+    pendientes.rmContent();
+    actual.rmContent();
+    terminados.rmContent();
     pendientes.print("procesos     pendientes:", BLANCO, true);
-    pendientes.print("NOM   TMPM  ", BLANCO, true);
+    pendientes.print("NOM     TMPM    ", BLANCO, true);
     actual.print("procesos actual:", BLANCO, true);
-    actual.print("ID    NOM   OP    TMPM  TMPR  TMPT ", BLANCO, true);
+    actual.print("NOM     ID      OP      TMPM    TMPR    TMPT   ",
+                 BLANCO, true);
     terminados.print("procesos terminados:", BLANCO, true);
-    terminados.print("ID    NOM   OP    TMPM RES  ", BLANCO, true);
+    terminados.print("NOM     ID      OP      TMPM    RES     ", BLANCO, true);
     Cursor::gotoxy(72, 3);
     std::cout << "Tiempo total transcurrido (segundos): ";
     while (this->procPend.size()) {
@@ -204,8 +209,8 @@ void Lote::ejecutarProcesos()
         this->procPend.erase(this->procPend.begin());
 
         pendientes.rmContent();
-        pendientes.print("procesos     pendientes:", BLANCO, true);
-        pendientes.print("NOM   TMPM  ", BLANCO, true);
+        pendientes.print("procesos      pendientes:", BLANCO, true);
+        pendientes.print("NOM     TMPM    ", BLANCO, true);
         for (size_t i = 0; i < this->procPend.size(); ++i)
             llenarMarco(pendientes, this->procPend[i], false, false);
                
@@ -214,8 +219,11 @@ void Lote::ejecutarProcesos()
         while (cont--) {
             actual.rmContent();
             actual.print("proceso actual:", BLANCO, true);
-            actual.print("ID    NOM   OP    TMPM  TMPR  TMPT ", BLANCO, true);
+            actual.print("NOM     ID      OP      TMPM    TMPR    TMPT    ",
+                         BLANCO, true);
             llenarMarco(actual, *this->procActual, true, false);
+            Cursor::gotoxy(72, 4);
+            std::cout << "          ";
             Cursor::gotoxy(72, 4);
             std::cout << Lote::tiempoTotal;
             std::cout.flush();
@@ -235,23 +243,29 @@ void Lote::ejecutarProcesos()
     std::cout << Lote::tiempoTotal;
     actual.rmContent();
     actual.print("procesos actual:", BLANCO, true);
-    actual.print("ID    NOM   OP    TMPM  TMPR  TMPT ", BLANCO, true);
+    actual.print("NOM     ID      OP      TMPM    TMPR    TMPT    ",
+                 BLANCO, true);
 }
 
 void Lote::llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term)
 {
-    marco.print(proc.getNombre(), BLANCO, false, 5);
+    marco.print(proc.getNombre(), BLANCO, false, FIELD_WIDTH);
     if (!actual && !term)
-        marco.print(std::to_string(proc.getTiempoMax()), BLANCO, false, 5);
+        marco.print(std::to_string(proc.getTiempoMax()), BLANCO, true,
+                    FIELD_WIDTH);
     else if (actual || term) {
-        marco.print(std::to_string(proc.getID()), BLANCO, false, 5);
-        marco.print(proc.getOperacion(), BLANCO, false, 5);
-        marco.print(std::to_string(proc.getTiempoMax()), BLANCO, false, 5);
+        marco.print(std::to_string(proc.getID()), BLANCO, false, FIELD_WIDTH);
+        marco.print(proc.getOperacion(), BLANCO, false, FIELD_WIDTH);
+        marco.print(std::to_string(proc.getTiempoMax()), BLANCO, false,
+                    FIELD_WIDTH);
     }
     if (actual) {
-        marco.print(std::to_string(proc.getTiempoRes()), BLANCO, false, 5);
-        marco.print(std::to_string(proc.getTiempoTrans()), BLANCO, true, 5);
+        marco.print(std::to_string(proc.getTiempoRes()), BLANCO, false,
+                    FIELD_WIDTH);
+        marco.print(std::to_string(proc.getTiempoTrans()), BLANCO, true,
+                    FIELD_WIDTH);
     }
     else if (term)
-        marco.print(std::to_string(proc.getResultado()), BLANCO, true, 5);
+        marco.print(std::to_string(proc.getResultado()), BLANCO, true,
+                    FIELD_WIDTH);
 }

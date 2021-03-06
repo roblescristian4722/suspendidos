@@ -30,6 +30,9 @@ public:
     ProcesadorLotes();
     ~ProcesadorLotes();
 
+    // Muestra una lista con todos los procesos y lotes al igual que sus
+    // resultados y datos generales
+    void mostrarResultados(unsigned int x = 1, unsigned int y = 31);
     // Se comienza con la captura y posteriormente la ejecición de lotes
     void iniciar();
 };

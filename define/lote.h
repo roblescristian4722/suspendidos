@@ -8,6 +8,7 @@
 #include <regex>
 #include "proceso.h"
 #include "cursor.h"
+#define FIELD_WIDTH 8
 
 class Lote
 {
@@ -17,7 +18,7 @@ private:
     Proceso* procActual;
     std::vector<Proceso> procTerm;
     std::map<std::string, bool> IDsUsados;
-    unsigned long tiempoTotal = 0;
+    static unsigned long tiempoTotal;
 
     // Establece el ID del proceso, retorna true si el proceso fue exitoso y 
     // retorna false en caso de que el ID sea incorrecto o ya esté en uso

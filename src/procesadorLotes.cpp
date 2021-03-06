@@ -12,6 +12,18 @@ ProcesadorLotes::~ProcesadorLotes()
     this->loteActual = nullptr;
 }
 
+void ProcesadorLotes::mostrarResultados(unsigned int x, unsigned int y)
+{
+    Cursor::gotoxy(x, y);
+    std::cout << "RESULTADOS:" << std::endl;
+    for (size_t i = 0; i < this->lotesTerminados.size(); ++i) {
+        std::cout << "-------------------- LOTE "
+                  << this->lotesTerminados[i].getID()
+                  << " --------------------" << std::endl;
+        this->lotesTerminados[i].getProcesosTerminados();
+    }
+}
+
 void ProcesadorLotes::iniciar()
 {
     char aux = 'n';
@@ -24,6 +36,7 @@ void ProcesadorLotes::iniciar()
         std::cin.ignore();
     } while (aux == 's' || aux == 'S');
     ejecutarLotes();
+
 }
 
 void ProcesadorLotes::capturarLote()
