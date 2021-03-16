@@ -47,7 +47,7 @@ public:
     // Imprime en pantalla los procesos pendientes de ejecución en orden
     std::vector<Proceso>& getProcesosPendientes() const;
     // Imprime en pantalla los procesos pendientes de ejecución en orden
-    void getProcesosTerminados();
+    void printProcesosTerminados();
     // Retorna un puntero hacia el proceso en ejecución
     Proceso* getProcesoActual() const;
     // Retorna el ID del lote
@@ -56,15 +56,18 @@ public:
     void setID(const unsigned long& ID); 
     // Función genérica que llama a los setters de un proceso, se ejecuta de
     // en un bucle hasta que el setter retorne true
-    void capturarProceso();
+    void capturarProceso(const unsigned long& cont);
     // Se itera por la lista de procesos pendientes y se ejecutan de en orden
     // de uno en uno
     void ejecutarProcesos();
     // Función que comienza la captura de procesos
-    bool iniciarCaptura();
+    void iniciarCaptura();
     // Inicializa las 3 ventanas para la ejecición de procesos
     void imprimirVentanas(Frame* pend = nullptr, Frame* act = nullptr,
                           Frame* term = nullptr);
+    // Genera valores aleatorios para un campo
+    unsigned long generarTiempoProceso();
+    std::string generarOperacionProceso();
 };
 
 #endif // LOTE_H

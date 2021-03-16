@@ -3,6 +3,7 @@
 #include "../define/proceso.h"
 #include <chrono>
 #include <cstdio>
+#include <cstdlib>
 #include <ostream>
 #include <thread>
 
@@ -10,14 +11,11 @@ unsigned long Lote::tiempoTotal = 0;
 std::map<std::string, bool> Lote::IDs;
 
 Lote::Lote()
-{ 
-    procActual = nullptr;
-}
+{ this->procActual = nullptr; }
 
 // Constructor copy
 Lote::Lote(const Lote& lote)
 {
-
     this->ID = lote.ID;
     this->procPend = lote.procPend;
     this->procTerm = lote.procTerm;
@@ -51,28 +49,20 @@ Lote::~Lote()
     this->procActual = nullptr;
 }
 
-bool Lote::iniciarCaptura()
+void Lote::iniciarCaptura()
 {
-    char aux = 'n';
-    procActual = nullptr;
-    do {
-        if (this->procPend.size() == BATCH_MAX_CAPACITY)
-            return true;
-        capturarProceso();
-        std::cout << Cursor::Cursor::colorText(CYAN, "¿Desea capturar otro "
-                                                     "proceso? s = si, "
-                                                     "cualquier otra tecla "
-                                                     "= no: ");
-        std::cin >> aux;
-        std::cin.ignore();
-    } while (aux == 's' || aux == 'S');
-    return false;
+    unsigned int proc = 0;
+    unsigned long cont = 1;
+    
+    std::cout << Cursor::colorText(VERDE, "Lotes a capturar: ") << std::endl;
+    while (proc--)
+        capturarProceso(cont++);
 }
 
 std::vector<Proceso>& Lote::getProcesosPendientes() const
 { return this->getProcesosPendientes(); }
 
-void Lote::getProcesosTerminados()
+void Lote::printProcesosTerminados()
 {
     for (size_t i = 0; i < this->procTerm.size(); ++i) {
         std::cout << "Proceso #" << i + 1 << std::endl
@@ -95,28 +85,37 @@ const unsigned long& Lote::getID() const
 void Lote::setID(const unsigned long &ID)
 { this->ID = ID; }
 
-void Lote::capturarProceso()
+void Lote::capturarProceso(const unsigned long& cont)
 {
     Proceso aux;
     // Captura de ID
-    capturarCampo("Ingrese el ID del proceso: ",
-                  "ERROR: el ID no es válido, debe de ser un número positivo "
-                  "del 1 al 99999", aux, &Proceso::setID, &Lote::IDs);
-    // Captura nombre
-    capturarCampo("Ingrese el nombre del programador: ",
-                  "ERROR: el nombre debe de contener al menos 3 caracteres "
-                  "alfanuméricos (no debe de comenzar con un número)",
-                  aux, &Proceso::setNombre);
+    aux.setID(std::to_string((this->ID - 1) * BATCH_MAX_CAPACITY + cont));
     // Captura de operación
-    capturarCampo("Ingrese la operación a realizar: ",
-                  "ERROR: La operación ingresada no es válida. El formato "
-                  "debe de ser \"int [+|-|/|%/*]\" int", aux,
-                  &Proceso::setOperacion);
+    aux.setOperacion(generarOperacionProceso());
     // Captura de tiempo máximo
-    capturarCampo("Ingrese el tiempo máximo estimado de ejecución: ",
-                  "ERROR: el tiempo máximo de ejecución debe de ser un número "
-                  "mayor a cero", aux, &Proceso::setTiempoMax);
+    aux.setTiempoMax(std::to_string(generarTiempoProceso()));
     this->procPend.push_back(aux);
+}
+
+std::string Lote::generarOperacionProceso()
+{   
+    const short numOp = 5;
+    char op[numOp] = { '+', '-', '*', '/', '%' };
+    std::string tmp = "";
+    srand(time(NULL));
+    tmp = std::to_string(rand());
+    tmp += op[rand() % numOp];
+    tmp += std::to_string(rand());
+    return tmp; 
+}
+
+unsigned long Lote::generarTiempoProceso()
+{
+    const short maxTmp = 25;
+    unsigned long tmp = 1;
+    srand(time(NULL));
+    tmp = (rand() % maxTmp) + 1;
+    return tmp;
 }
 
 void Lote::capturarCampo(std::string msj, std::string msjError,

@@ -12,6 +12,7 @@ private:
     std::vector<Lote> lotesPendientes;
     Lote* loteActual;
     std::vector<Lote>lotesTerminados;
+    unsigned long idCont;
 
     // Se itera por el vector de lotes pendientes y se ejecutan en orden para
     // después guardarlos en el vector de lotes terminados

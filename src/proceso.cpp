@@ -42,18 +42,16 @@ bool Proceso::setOperacion(const std::string& operacion)
     return false;
 }
 
-bool Proceso::setID(const std::string& ID, std::map<std::string, bool>* IDs)
+bool Proceso::setID(const std::string& ID)
 {
     std::regex validacion("[1-9][0-9]{0,4}");
     if (std::regex_match(ID, validacion)){
-        if (IDs->find(ID) == IDs->end()) {
-            (*IDs)[ID] = true;
-            this->ID = std::stoul(ID);
-            return true;
-        }
+        this->ID = std::stoul(ID);
+        return true;
     }
     return false;
 }
+
 bool Proceso::setTiempoMax(const std::string& tiempoMax)
 {
     std::regex validacion("[0-9]{1,4}");
