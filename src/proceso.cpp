@@ -18,6 +18,14 @@ const std::string& Proceso::getNombre() const
 { return this->nombre; }
 const std::string& Proceso::getOperacion() const
 { return this->operacion; }
+const unsigned int& Proceso::getLote() const
+{ return this->lote; }
+const long& Proceso::getResultado() const
+{ return this->resultado; }
+const unsigned long& Proceso::getTiempoTrans() const
+{ return this->tiempoTrans; }
+const unsigned long& Proceso::getTiempoRes() const
+{ return this->tiempoRes; }
 
 //Setters validados
 bool Proceso::setNombre(const std::string& nombre)
@@ -66,8 +74,12 @@ bool Proceso::setTiempoMax(const std::string& tiempoMax)
     return false;
 }
 
-const long& Proceso::getResultado() const
-{ return this->resultado; }
+void Proceso::setTiempoTrans(const unsigned long& tiempoTrans)
+{ this->tiempoTrans = tiempoTrans; }
+void Proceso::setTiempoRes(const unsigned long& tiempoRes)
+{ this->tiempoRes = tiempoRes; }
+void Proceso::setLote(const unsigned int &lote)
+{ this->lote = lote; }
 
 void Proceso::calculate()
 {
@@ -126,12 +138,3 @@ void Proceso::calculate()
         break;
     }
 }
-
-const unsigned long& Proceso::getTiempoTrans() const
-{ return this->tiempoTrans; }
-const unsigned long& Proceso::getTiempoRes() const
-{ return this->tiempoRes; }
-void Proceso::setTiempoTrans(const unsigned long& tiempoTrans)
-{ this->tiempoTrans = tiempoTrans; }
-void Proceso::setTiempoRes(const unsigned long& tiempoRes)
-{ this->tiempoRes = tiempoRes; }

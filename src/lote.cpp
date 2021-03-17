@@ -52,6 +52,12 @@ Lote::~Lote()
 std::vector<Proceso>& Lote::getProcesosPendientes() const
 { return this->getProcesosPendientes(); }
 
+Proceso* Lote::getProcesoActual() const
+{ return this->procActual; }
+
+const unsigned long& Lote::getId() const
+{ return this->id; }
+
 void Lote::printProcesosTerminados()
 {
     for (size_t i = 0; i < this->procTerm.size(); ++i) {
@@ -65,12 +71,6 @@ void Lote::printProcesosTerminados()
                   << std::endl << std::endl;
     }
 }
-
-Proceso* Lote::getProcesoActual() const
-{ return this->procActual; }
-
-const unsigned long& Lote::getId() const
-{ return this->id; }
 
 void Lote::setId(const unsigned long &id)
 { this->id = id; }
@@ -93,6 +93,13 @@ void Lote::iniciar()
 void Lote::capturarProceso(const unsigned long& cont)
 {
     Proceso aux;
+    unsigned int lote = cont / BATCH_MAX_CAPACITY;
+    
+    // Captura de lote
+    if (cont % BATCH_MAX_CAPACITY)
+        aux.setLote(++lote);
+    else
+        aux.setLote(lote);
     // Captura de ID
     aux.setId(std::to_string(cont));
     // Captura de operación
@@ -181,35 +188,28 @@ void Lote::capturarCampo(std::string msj, std::string msjError,
 
 void Lote::ejecutarProcesos()
 {
-    float lotes = (float)this->procPend.size() / BATCH_MAX_CAPACITY;
-    unsigned long lotesRes = (lotes - (int)(lotes)) ? lotes : lotes + 1;
-    unsigned long lotesTerm = 0;
+    unsigned int lotesRes = this->procPend.size() / BATCH_MAX_CAPACITY;
+    unsigned int lotesTerm = 0;
     unsigned long cont = 0;
-    Frame pendientes(1, 5, FIELD_WIDTH * 2, 15, AMARILLO);
-    Frame actual(FIELD_WIDTH * 2 + 2, 5, FIELD_WIDTH * 5, 15, VERDE);
-    Frame terminados(FIELD_WIDTH * 8 + 4, 5, FIELD_WIDTH * 4, 15, CYAN);
-
+    Frame pend(1, 5, FIELD_WIDTH * 2 + 2, 15, AMARILLO);
+    Frame actual(FIELD_WIDTH * 2 + 4, 5, FIELD_WIDTH * 5, 10, VERDE);
+    Frame term(FIELD_WIDTH * 7 + 5, 5, FIELD_WIDTH * 5, 15, CYAN);
+    
     Cursor::clrscr();
-    imprimirVentanas(&pendientes, &actual, &terminados);
-    terminados.print("-----------(lote ");
-    terminados.print(std::to_string(++lotesTerm));
-    terminados.print(")-----------");
+    if (!(this->procPend.size() % BATCH_MAX_CAPACITY))
+        lotesRes--;
+    Cursor::clrscr();
+    imprimirVentanas(&pend, &actual, &term);
     while (this->procPend.size()) {
         this->procActual = new Proceso(this->procPend.front());
         this->procPend.erase(this->procPend.begin());
 
-        pendientes.rmContent();
-        imprimirVentanas(&pendientes);
+        pend.rmContent();
+        imprimirVentanas(&pend);
         for (size_t i = 0; i < this->procPend.size(); ++i)
-            llenarMarco(pendientes, this->procPend[i], false, false);
+            if (this->procPend[i].getLote() == (lotesTerm + 1))
+                llenarMarco(pend, this->procPend[i], false, false);
         
-        if (!(this->procTerm.size() % BATCH_MAX_CAPACITY)
-                && this->procTerm.size()) {
-            terminados.print("-----------(lote ");
-            terminados.print(std::to_string(++lotesTerm));
-            terminados.print(")-----------");
-        }
-
         cont = this->procActual->getTiempoMax();
         while (cont--) {
             actual.rmContent();
@@ -230,21 +230,26 @@ void Lote::ejecutarProcesos()
         }
 
         this->procActual->calculate();
-        llenarMarco(terminados, *this->procActual, false, true);
+        llenarMarco(term, *this->procActual, false, true);
         this->procTerm.push_back(*this->procActual);
         delete this->procActual; this->procActual = nullptr;
-        if (!(this->procTerm.size() % BATCH_MAX_CAPACITY))
+        if (!(this->procTerm.size() % BATCH_MAX_CAPACITY)){
             lotesRes--;
+            lotesTerm++;
+        }
     }
-    pendientes.rmContent(); actual.rmContent();
-    imprimirVentanas(&pendientes, &actual);
+    pend.rmContent(); actual.rmContent();
+    imprimirVentanas(&pend, &actual);
 }
 
 void Lote::llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term)
 {
-    if (!actual && !term)
-        marco.print(std::to_string(proc.getTiempoMax()), BLANCO, true,
+    if (!actual && !term) {
+        marco.print(std::to_string(proc.getTiempoMax()), BLANCO, false,
                     FIELD_WIDTH);
+        marco.print(std::to_string(proc.getTiempoTrans()), BLANCO, true,
+                    FIELD_WIDTH);
+    }
     else if (actual || term) {
         marco.print(std::to_string(proc.getId()), BLANCO, false, FIELD_WIDTH);
         marco.print(proc.getOperacion(), BLANCO, false, FIELD_WIDTH);
@@ -257,16 +262,19 @@ void Lote::llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term)
         marco.print(std::to_string(proc.getTiempoTrans()), BLANCO, true,
                     FIELD_WIDTH);
     }
-    else if (term)
-        marco.print(std::to_string(proc.getResultado()), BLANCO, true,
+    else if (term) {
+        marco.print(std::to_string(proc.getResultado()), BLANCO, false,
                     FIELD_WIDTH);
+        marco.print(std::to_string(proc.getLote()), BLANCO, true,
+                    FIELD_WIDTH);
+    }
 }
 
 void Lote::imprimirVentanas(Frame* pend, Frame* act, Frame* term)
 {
     if (pend) {
         pend->print("procesos      pendientes:", BLANCO, true);
-        pend->print("TMPM    ", BLANCO, true);
+        pend->print("TMPM    TT      ", BLANCO, true);
     }
     if (act) {
         act->print("procesos actual:", BLANCO, true);
@@ -275,6 +283,6 @@ void Lote::imprimirVentanas(Frame* pend, Frame* act, Frame* term)
     }
     if (term){
         term->print("procesos terminados:", BLANCO, true);
-        term->print("ID      OP      TMPM    RES     ", BLANCO, true);
+        term->print("ID      OP      TMPM    RES     LOTE    ", BLANCO, true);
     }
 }

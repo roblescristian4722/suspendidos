@@ -9,6 +9,7 @@ class Proceso
 private:
     std::string nombre;
     std::string operacion;
+    unsigned int lote;
     long resultado;
     unsigned long id;
     unsigned long tiempoMax;
@@ -34,6 +35,8 @@ public:
     const unsigned long& getTiempoRes() const;
     // Obtiene el tiepo transcurrido
     const unsigned long& getTiempoTrans() const;
+    // Obitiene el número de lote
+    const unsigned int& getLote() const;
     
     // Genera el resultado de la operación
     void calculate();
@@ -49,6 +52,8 @@ public:
     bool setId(const std::string& idD);
     // Asigna el tiempo máximo estimado de ejecucón del proceso (en segundos)
     bool setTiempoMax(const std::string& tiempoMax);
+    // Asigna el número de lote
+    void setLote(const unsigned int& lote);
 };
 
 #endif // PROCESO_H

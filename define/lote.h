@@ -34,6 +34,21 @@ private:
                        bool(Proceso::*metodo)(const std::string&,
                                               std::map<std::string,bool>*),
                        std::map<std::string, bool>* idsUsed);
+    // Inicializa las 3 ventanas para la ejecición de procesos
+    void imprimirVentanas(Frame* pend = nullptr, Frame* act = nullptr,
+                          Frame* term = nullptr);
+    // Genera tiempo aleatorio entre un rango de 6 a 15 segundos
+    unsigned long generarTiempoProceso();
+    // Genera una opreración aleatoria
+    std::string generarOperacionProceso();
+    // Función genérica que llama a los setters de un proceso, se ejecuta de
+    // en un bucle hasta que el setter retorne true
+    void capturarProceso(const unsigned long& cont);
+    // Se itera por la lista de procesos pendientes y se ejecutan de en orden
+    // de uno en uno
+    void ejecutarProcesos();
+    // Imprime los datos del proceso en un marco
+    void llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term);
 
 public:
     Lote();
@@ -42,8 +57,6 @@ public:
     ~Lote();
     const Lote& operator =(const Lote& lote);
 
-    // Imprime los datos del proceso en un marco
-    void llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term);
     // Imprime en pantalla los procesos pendientes de ejecución en orden
     std::vector<Proceso>& getProcesosPendientes() const;
     // Imprime en pantalla los procesos pendientes de ejecución en orden
@@ -54,20 +67,8 @@ public:
     const unsigned long& getId() const;
     // Establece el ID del lote
     void setId(const unsigned long& id); 
-    // Función genérica que llama a los setters de un proceso, se ejecuta de
-    // en un bucle hasta que el setter retorne true
-    void capturarProceso(const unsigned long& cont);
-    // Se itera por la lista de procesos pendientes y se ejecutan de en orden
-    // de uno en uno
-    void ejecutarProcesos();
     // Función que comienza la obtención de procesos
     void iniciar();
-    // Inicializa las 3 ventanas para la ejecición de procesos
-    void imprimirVentanas(Frame* pend = nullptr, Frame* act = nullptr,
-                          Frame* term = nullptr);
-    // Genera valores aleatorios para un campo
-    unsigned long generarTiempoProceso();
-    std::string generarOperacionProceso();
 };
 
 #endif // LOTE_H
