@@ -6,6 +6,7 @@
 #include <thread>
 #include <map>
 #include <regex>
+#include <conio.h>
 #include "proceso.h"
 #include "cursor.h"
 #define FIELD_WIDTH 8
@@ -49,6 +50,13 @@ private:
     void ejecutarProcesos();
     // Imprime los datos del proceso en un marco
     void llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term);
+    // Interrumpe un proceso y lo pone al final de la cola de procesos del
+    // lote actual
+    void inter();
+    // Cancela la ejecución del proceso y muestra un error como resultado
+    void error();
+    // Pausa un proceso hasta que usuario presione "c" para continuar
+    void pausa();
 
 public:
     Lote();

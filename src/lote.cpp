@@ -2,6 +2,7 @@
 #include "../define/cursor.h"
 #include "../define/proceso.h"
 #include <chrono>
+#include <conio.h>
 #include <cstdio>
 #include <cstdlib>
 #include <ostream>
@@ -13,7 +14,6 @@ std::map<std::string, bool> Lote::idsUsed;
 Lote::Lote()
 { this->procActual = nullptr; }
 
-// Constructor copy
 Lote::Lote(const Lote& lote)
 {
     this->id = lote.id;
@@ -127,10 +127,10 @@ std::string Lote::generarOperacionProceso()
 
 unsigned long Lote::generarTiempoProceso()
 {
-    const short maxTmp = 5;
+    const short maxTmp = 10;
     unsigned long tmp = 1;
     srand(time(NULL));
-    tmp = (rand() % maxTmp) + 1;
+    tmp = (rand() % maxTmp) + 6;
     return tmp;
 }
 
@@ -186,19 +186,23 @@ void Lote::capturarCampo(std::string msj, std::string msjError,
     }
 }
 
+///////////////////////////////////////////////
+/*           EJECUCIÓN DE PROCESOS           */
+///////////////////////////////////////////////
 void Lote::ejecutarProcesos()
 {
     unsigned int lotesRes = this->procPend.size() / BATCH_MAX_CAPACITY;
     unsigned int lotesTerm = 0;
     unsigned long cont = 0;
+    unsigned char input;
+    
+    Cursor::clrscr();
     Frame pend(1, 5, FIELD_WIDTH * 2 + 2, 15, AMARILLO);
     Frame actual(FIELD_WIDTH * 2 + 4, 5, FIELD_WIDTH * 5, 10, VERDE);
     Frame term(FIELD_WIDTH * 7 + 5, 5, FIELD_WIDTH * 5, 15, CYAN);
     
-    Cursor::clrscr();
     if (!(this->procPend.size() % BATCH_MAX_CAPACITY))
         lotesRes--;
-    Cursor::clrscr();
     imprimirVentanas(&pend, &actual, &term);
     while (this->procPend.size()) {
         this->procActual = new Proceso(this->procPend.front());
@@ -212,6 +216,21 @@ void Lote::ejecutarProcesos()
         
         cont = this->procActual->getTiempoMax();
         while (cont--) {
+            if (kbhit()) {
+                input = getch();
+                switch(input) {
+                    case 'i': case 'I':
+                        inter();
+                    break;
+                    case 'p': case 'P':
+                        pausa();
+                    break;
+                    case 'e': case 'E':
+                        error();
+                    break;
+                    default: break;
+                }
+            }
             actual.rmContent();
             imprimirVentanas(nullptr, &actual);
             llenarMarco(actual, *this->procActual, true, false);
@@ -242,6 +261,31 @@ void Lote::ejecutarProcesos()
     imprimirVentanas(&pend, &actual);
 }
 
+void Lote::inter()
+{
+     
+}
+
+void Lote::error()
+{
+
+}
+
+void Lote::pausa()
+{
+    unsigned char input;
+    while (1) {
+        if (kbhit()) {
+            input = getch();
+            if (input == 'c' || input == 'C')
+                break;
+        }
+    }
+}
+
+///////////////////////////////////////////////
+/*           IMPRESIÓN DE VENTANAS           */
+///////////////////////////////////////////////
 void Lote::llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term)
 {
     if (!actual && !term) {
@@ -273,7 +317,7 @@ void Lote::llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term)
 void Lote::imprimirVentanas(Frame* pend, Frame* act, Frame* term)
 {
     if (pend) {
-        pend->print("procesos      pendientes:", BLANCO, true);
+        pend->print("procesos pendientes:", BLANCO, true);
         pend->print("TMPM    TT      ", BLANCO, true);
     }
     if (act) {

@@ -1,3 +1,0 @@
-C:/Users/krist/Documents/procesamiento_por_lotes/build/CMakeFiles/edit_cache.dir
-C:/Users/krist/Documents/procesamiento_por_lotes/build/CMakeFiles/procesamientoPorLotes.dir
-C:/Users/krist/Documents/procesamiento_por_lotes/build/CMakeFiles/rebuild_cache.dir
