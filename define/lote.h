@@ -52,11 +52,13 @@ private:
     void llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term);
     // Interrumpe un proceso y lo pone al final de la cola de procesos del
     // lote actual
-    void inter();
+    bool inter(unsigned long &cont);
     // Cancela la ejecución del proceso y muestra un error como resultado
-    void error();
+    void error(unsigned long &cont);
     // Pausa un proceso hasta que usuario presione "c" para continuar
     void pausa();
+    // Casos para la función kbhit
+    bool escTeclado(unsigned long& cont);
 
 public:
     Lote();

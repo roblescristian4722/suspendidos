@@ -12,7 +12,10 @@ unsigned long Lote::tiempoTotal = 0;
 std::map<std::string, bool> Lote::idsUsed;
 
 Lote::Lote()
-{ this->procActual = nullptr; }
+{
+    srand(time(NULL));
+    this->procActual = nullptr;
+}
 
 Lote::Lote(const Lote& lote)
 {
@@ -117,7 +120,6 @@ std::string Lote::generarOperacionProceso()
     const short numOp = 5;
     char op[numOp] = { '+', '-', '*', '/', '%' };
     std::string tmp = "";
-    srand(time(NULL));
 
     tmp = std::to_string((rand() % 99) + 1);
     tmp += op[rand() % numOp];
@@ -129,7 +131,6 @@ unsigned long Lote::generarTiempoProceso()
 {
     const short maxTmp = 10;
     unsigned long tmp = 1;
-    srand(time(NULL));
     tmp = (rand() % maxTmp) + 6;
     return tmp;
 }
@@ -194,17 +195,18 @@ void Lote::ejecutarProcesos()
     unsigned int lotesRes = this->procPend.size() / BATCH_MAX_CAPACITY;
     unsigned int lotesTerm = 0;
     unsigned long cont = 0;
-    unsigned char input;
+    bool jump;
     
     Cursor::clrscr();
-    Frame pend(1, 5, FIELD_WIDTH * 2 + 2, 15, AMARILLO);
-    Frame actual(FIELD_WIDTH * 2 + 4, 5, FIELD_WIDTH * 5, 10, VERDE);
-    Frame term(FIELD_WIDTH * 7 + 5, 5, FIELD_WIDTH * 5, 15, CYAN);
+    Frame pend(1, 5, FIELD_WIDTH * 3 + 2, 15, AMARILLO);
+    Frame actual(FIELD_WIDTH * 3 + 4, 5, FIELD_WIDTH * 5, 8, VERDE);
+    Frame term(FIELD_WIDTH * 8 + 5, 5, FIELD_WIDTH * 5, 25, CYAN);
     
     if (!(this->procPend.size() % BATCH_MAX_CAPACITY))
         lotesRes--;
     imprimirVentanas(&pend, &actual, &term);
     while (this->procPend.size()) {
+        jump = false;
         this->procActual = new Proceso(this->procPend.front());
         this->procPend.erase(this->procPend.begin());
 
@@ -216,21 +218,8 @@ void Lote::ejecutarProcesos()
         
         cont = this->procActual->getTiempoMax();
         while (cont--) {
-            if (kbhit()) {
-                input = getch();
-                switch(input) {
-                    case 'i': case 'I':
-                        inter();
-                    break;
-                    case 'p': case 'P':
-                        pausa();
-                    break;
-                    case 'e': case 'E':
-                        error();
-                    break;
-                    default: break;
-                }
-            }
+            jump = escTeclado(cont);
+            if (jump) break;
             actual.rmContent();
             imprimirVentanas(nullptr, &actual);
             llenarMarco(actual, *this->procActual, true, false);
@@ -248,9 +237,11 @@ void Lote::ejecutarProcesos()
                                        this->procActual->getTiempoTrans() + 1);
         }
 
-        this->procActual->calculate();
-        llenarMarco(term, *this->procActual, false, true);
-        this->procTerm.push_back(*this->procActual);
+        if (!jump) {
+            this->procActual->calculate();
+            llenarMarco(term, *this->procActual, false, true);
+            this->procTerm.push_back(*this->procActual);
+        }
         delete this->procActual; this->procActual = nullptr;
         if (!(this->procTerm.size() % BATCH_MAX_CAPACITY)){
             lotesRes--;
@@ -261,24 +252,56 @@ void Lote::ejecutarProcesos()
     imprimirVentanas(&pend, &actual);
 }
 
-void Lote::inter()
+bool Lote::escTeclado(unsigned long &cont)
 {
-     
+    unsigned char input;
+    if (kbhit()) {
+        input = getch();
+        switch (input) {
+        case 'i': case 'I':
+            inter(cont);
+            return true;
+        case 'p': case 'P':
+            pausa();
+            return false;
+        case 'e': case 'E':
+            error(cont);
+            return false;
+        default:
+            return false;
+        }
+    }
+    return false;
 }
 
-void Lote::error()
+bool Lote::inter(unsigned long &cont)
 {
+    std::vector<Proceso>::iterator it = this->procPend.begin();
+    unsigned int lote = it->getLote();
+    cont = 0;
+    for (it; it->getLote() == lote && it != this->procPend.end(); it++);
+    this->procPend.insert(it, *this->procActual);
+    return true;
+}
 
+void Lote::error(unsigned long &cont)
+{
+    
 }
 
 void Lote::pausa()
 {
     unsigned char input;
+    Cursor::gotoxy(1, 3);
+    std::cout << Cursor::colorText(MORADO,
+                        "Ejecucion pausada - Presione \"c\" para continuar");
     while (1) {
         if (kbhit()) {
             input = getch();
-            if (input == 'c' || input == 'C')
+            if (input == 'c' || input == 'C') {
+                Cursor::rmLine();
                 break;
+            }
         }
     }
 }
@@ -288,6 +311,7 @@ void Lote::pausa()
 ///////////////////////////////////////////////
 void Lote::llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term)
 {
+    marco.print(std::to_string(proc.getId()), BLANCO, false, FIELD_WIDTH);
     if (!actual && !term) {
         marco.print(std::to_string(proc.getTiempoMax()), BLANCO, false,
                     FIELD_WIDTH);
@@ -295,7 +319,6 @@ void Lote::llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term)
                     FIELD_WIDTH);
     }
     else if (actual || term) {
-        marco.print(std::to_string(proc.getId()), BLANCO, false, FIELD_WIDTH);
         marco.print(proc.getOperacion(), BLANCO, false, FIELD_WIDTH);
         marco.print(std::to_string(proc.getTiempoMax()), BLANCO, false,
                     FIELD_WIDTH);
@@ -318,15 +341,15 @@ void Lote::imprimirVentanas(Frame* pend, Frame* act, Frame* term)
 {
     if (pend) {
         pend->print("procesos pendientes:", BLANCO, true);
-        pend->print("TMPM    TT      ", BLANCO, true);
+        pend->print("ID      TMPM    TT", BLANCO, true);
     }
     if (act) {
         act->print("procesos actual:", BLANCO, true);
-        act->print("ID      OP      TMPM    TMPR    TMPT    ",
+        act->print("ID      OP      TMPM    TMPR    TMPT",
                    BLANCO, true);
     }
     if (term){
         term->print("procesos terminados:", BLANCO, true);
-        term->print("ID      OP      TMPM    RES     LOTE    ", BLANCO, true);
+        term->print("ID      OP      TMPM    RES     LOTE", BLANCO, true);
     }
 }
