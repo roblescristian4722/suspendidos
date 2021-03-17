@@ -14,11 +14,11 @@
 class Lote
 {
 private:
-    unsigned long ID;
+    unsigned long id;
     std::vector<Proceso> procPend;
     Proceso* procActual;
     std::vector<Proceso> procTerm;
-    static std::map<std::string, bool> IDs;
+    static std::map<std::string, bool> idsUsed;
     static unsigned long tiempoTotal;
 
     // Establece el ID del proceso, retorna true si el proceso fue exitoso y 
@@ -33,7 +33,7 @@ private:
                        Proceso& proc,
                        bool(Proceso::*metodo)(const std::string&,
                                               std::map<std::string,bool>*),
-                       std::map<std::string, bool>* IDs);
+                       std::map<std::string, bool>* idsUsed);
 
 public:
     Lote();
@@ -51,17 +51,17 @@ public:
     // Retorna un puntero hacia el proceso en ejecución
     Proceso* getProcesoActual() const;
     // Retorna el ID del lote
-    const unsigned long& getID() const;
+    const unsigned long& getId() const;
     // Establece el ID del lote
-    void setID(const unsigned long& ID); 
+    void setId(const unsigned long& id); 
     // Función genérica que llama a los setters de un proceso, se ejecuta de
     // en un bucle hasta que el setter retorne true
     void capturarProceso(const unsigned long& cont);
     // Se itera por la lista de procesos pendientes y se ejecutan de en orden
     // de uno en uno
     void ejecutarProcesos();
-    // Función que comienza la captura de procesos
-    void iniciarCaptura();
+    // Función que comienza la obtención de procesos
+    void iniciar();
     // Inicializa las 3 ventanas para la ejecición de procesos
     void imprimirVentanas(Frame* pend = nullptr, Frame* act = nullptr,
                           Frame* term = nullptr);

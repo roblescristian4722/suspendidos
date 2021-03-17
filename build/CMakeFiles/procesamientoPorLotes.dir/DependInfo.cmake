@@ -1,20 +1,17 @@
+
+# Consider dependencies only in project.
+set(CMAKE_DEPENDS_IN_PROJECT_ONLY OFF)
+
 # The set of languages for which implicit dependencies are needed:
 set(CMAKE_DEPENDS_LANGUAGES
-  "CXX"
   )
-# The set of files for implicit dependencies of each language:
-set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/kristo/Documents/procesamiento_por_lotes/src/cursor.cpp" "/home/kristo/Documents/procesamiento_por_lotes/build/CMakeFiles/procesamientoPorLotes.dir/src/cursor.cpp.o"
-  "/home/kristo/Documents/procesamiento_por_lotes/src/lote.cpp" "/home/kristo/Documents/procesamiento_por_lotes/build/CMakeFiles/procesamientoPorLotes.dir/src/lote.cpp.o"
-  "/home/kristo/Documents/procesamiento_por_lotes/src/main.cpp" "/home/kristo/Documents/procesamiento_por_lotes/build/CMakeFiles/procesamientoPorLotes.dir/src/main.cpp.o"
-  "/home/kristo/Documents/procesamiento_por_lotes/src/procesadorLotes.cpp" "/home/kristo/Documents/procesamiento_por_lotes/build/CMakeFiles/procesamientoPorLotes.dir/src/procesadorLotes.cpp.o"
-  "/home/kristo/Documents/procesamiento_por_lotes/src/proceso.cpp" "/home/kristo/Documents/procesamiento_por_lotes/build/CMakeFiles/procesamientoPorLotes.dir/src/proceso.cpp.o"
-  )
-set(CMAKE_CXX_COMPILER_ID "GNU")
 
-# The include file search paths:
-set(CMAKE_CXX_TARGET_INCLUDE_PATH
-  "../define"
+# The set of dependency files which are needed:
+set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "C:/Users/krist/Documents/procesamiento_por_lotes/src/cursor.cpp" "CMakeFiles/procesamientoPorLotes.dir/src/cursor.cpp.o" "gcc" "CMakeFiles/procesamientoPorLotes.dir/src/cursor.cpp.o.d"
+  "C:/Users/krist/Documents/procesamiento_por_lotes/src/lote.cpp" "CMakeFiles/procesamientoPorLotes.dir/src/lote.cpp.o" "gcc" "CMakeFiles/procesamientoPorLotes.dir/src/lote.cpp.o.d"
+  "C:/Users/krist/Documents/procesamiento_por_lotes/src/main.cpp" "CMakeFiles/procesamientoPorLotes.dir/src/main.cpp.o" "gcc" "CMakeFiles/procesamientoPorLotes.dir/src/main.cpp.o.d"
+  "C:/Users/krist/Documents/procesamiento_por_lotes/src/proceso.cpp" "CMakeFiles/procesamientoPorLotes.dir/src/proceso.cpp.o" "gcc" "CMakeFiles/procesamientoPorLotes.dir/src/proceso.cpp.o.d"
   )
 
 # Targets to which this target links.

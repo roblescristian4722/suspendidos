@@ -1,10 +1,15 @@
 file(REMOVE_RECURSE
   "CMakeFiles/procesamientoPorLotes.dir/src/cursor.cpp.o"
+  "CMakeFiles/procesamientoPorLotes.dir/src/cursor.cpp.o.d"
   "CMakeFiles/procesamientoPorLotes.dir/src/lote.cpp.o"
+  "CMakeFiles/procesamientoPorLotes.dir/src/lote.cpp.o.d"
   "CMakeFiles/procesamientoPorLotes.dir/src/main.cpp.o"
-  "CMakeFiles/procesamientoPorLotes.dir/src/procesadorLotes.cpp.o"
+  "CMakeFiles/procesamientoPorLotes.dir/src/main.cpp.o.d"
   "CMakeFiles/procesamientoPorLotes.dir/src/proceso.cpp.o"
-  "procesamientoPorLotes"
+  "CMakeFiles/procesamientoPorLotes.dir/src/proceso.cpp.o.d"
+  "libprocesamientoPorLotes.dll.a"
+  "procesamientoPorLotes.exe"
+  "procesamientoPorLotes.exe.manifest"
   "procesamientoPorLotes.pdb"
 )
 

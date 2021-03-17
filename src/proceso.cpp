@@ -1,7 +1,7 @@
 #include "../define/proceso.h"
 
-Proceso::Proceso(std::string nombre, std::string operacion, unsigned long ID, 
-                 unsigned long tiempoMax) : nombre(nombre), ID(ID),
+Proceso::Proceso(unsigned long id, std::string nombre, std::string operacion, 
+                 unsigned long tiempoMax) : nombre(nombre), id(id),
                  tiempoMax(tiempoMax), operacion(operacion),
                  tiempoRes(tiempoMax), tiempoTrans(0) {}
 
@@ -10,8 +10,8 @@ Proceso::Proceso()
 
 Proceso::~Proceso() {}
 
-const unsigned long& Proceso::getID() const
-{ return this->ID; }
+const unsigned long& Proceso::getId() const
+{ return this->id; }
 const unsigned long& Proceso::getTiempoMax() const
 { return this->tiempoMax; }
 const std::string& Proceso::getNombre() const
@@ -42,11 +42,11 @@ bool Proceso::setOperacion(const std::string& operacion)
     return false;
 }
 
-bool Proceso::setID(const std::string& ID)
+bool Proceso::setId(const std::string& id)
 {
     std::regex validacion("[1-9][0-9]{0,4}");
-    if (std::regex_match(ID, validacion)){
-        this->ID = std::stoul(ID);
+    if (std::regex_match(id, validacion)){
+        this->id = std::stoul(id);
         return true;
     }
     return false;

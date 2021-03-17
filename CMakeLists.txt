@@ -11,7 +11,6 @@ include_directories(define)
 set(SOURCE src/main.cpp
             src/cursor.cpp
             src/lote.cpp
-            src/procesadorLotes.cpp
             src/proceso.cpp)
 
 

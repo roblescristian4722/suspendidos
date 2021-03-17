@@ -8,7 +8,7 @@
 #include <thread>
 
 unsigned long Lote::tiempoTotal = 0;
-std::map<std::string, bool> Lote::IDs;
+std::map<std::string, bool> Lote::idsUsed;
 
 Lote::Lote()
 { this->procActual = nullptr; }
@@ -16,26 +16,26 @@ Lote::Lote()
 // Constructor copy
 Lote::Lote(const Lote& lote)
 {
-    this->ID = lote.ID;
+    this->id = lote.id;
     this->procPend = lote.procPend;
     this->procTerm = lote.procTerm;
     this->procActual = lote.procActual != nullptr
-        ? new Proceso(lote.procActual->getNombre(),
+        ? new Proceso(lote.procActual->getId(),
+                      lote.procActual->getNombre(),
                       lote.procActual->getOperacion(),
-                      lote.procActual->getID(),
                       lote.procActual->getTiempoMax())
         : nullptr;
 }
 
 const Lote& Lote::operator=(const Lote &lote)
 {
-    this->ID = lote.ID;
+    this->id = lote.id;
     this->procPend = lote.procPend;
     this->procTerm = lote.procTerm;
     this->procActual = lote.procActual != nullptr
-        ? new Proceso(lote.procActual->getNombre(),
+        ? new Proceso(lote.procActual->getId(),
+                      lote.procActual->getNombre(),
                       lote.procActual->getOperacion(),
-                      lote.procActual->getID(),
                       lote.procActual->getTiempoMax())
         : nullptr;
 
@@ -49,16 +49,6 @@ Lote::~Lote()
     this->procActual = nullptr;
 }
 
-void Lote::iniciarCaptura()
-{
-    unsigned int proc = 0;
-    unsigned long cont = 1;
-    
-    std::cout << Cursor::colorText(VERDE, "Lotes a capturar: ") << std::endl;
-    while (proc--)
-        capturarProceso(cont++);
-}
-
 std::vector<Proceso>& Lote::getProcesosPendientes() const
 { return this->getProcesosPendientes(); }
 
@@ -66,7 +56,7 @@ void Lote::printProcesosTerminados()
 {
     for (size_t i = 0; i < this->procTerm.size(); ++i) {
         std::cout << "Proceso #" << i + 1 << std::endl
-                  << "ID: " << this->procTerm[i].getID() << std::endl
+                  << "ID: " << this->procTerm[i].getId() << std::endl
                   << "Nombre: " << this->procTerm[i].getNombre() << std::endl
                   << "Operación: " << this->procTerm[i].getOperacion()
                   << "Resultado: " << this->procTerm[i].getResultado()
@@ -79,17 +69,32 @@ void Lote::printProcesosTerminados()
 Proceso* Lote::getProcesoActual() const
 { return this->procActual; }
 
-const unsigned long& Lote::getID() const
-{ return this->ID; }
+const unsigned long& Lote::getId() const
+{ return this->id; }
 
-void Lote::setID(const unsigned long &ID)
-{ this->ID = ID; }
+void Lote::setId(const unsigned long &id)
+{ this->id = id; }
 
+void Lote::iniciar()
+{
+    unsigned long proc = 0;
+    unsigned long cont = 0;
+    
+    std::cout << Cursor::colorText(VERDE, "Lotes a capturar: ");
+    std::cin >> proc;
+    while (proc--)
+        capturarProceso(++cont);
+    ejecutarProcesos();
+}
+
+///////////////////////////////////////////////
+/*          CREACIÓN DE PROCESO              */
+///////////////////////////////////////////////
 void Lote::capturarProceso(const unsigned long& cont)
 {
     Proceso aux;
     // Captura de ID
-    aux.setID(std::to_string((this->ID - 1) * BATCH_MAX_CAPACITY + cont));
+    aux.setId(std::to_string(cont));
     // Captura de operación
     aux.setOperacion(generarOperacionProceso());
     // Captura de tiempo máximo
@@ -97,32 +102,39 @@ void Lote::capturarProceso(const unsigned long& cont)
     this->procPend.push_back(aux);
 }
 
+///////////////////////////////////////////////
+/*      GENERACIÓN DE DATOS ALEATORIOS       */
+///////////////////////////////////////////////
 std::string Lote::generarOperacionProceso()
 {   
     const short numOp = 5;
     char op[numOp] = { '+', '-', '*', '/', '%' };
     std::string tmp = "";
     srand(time(NULL));
-    tmp = std::to_string(rand());
+
+    tmp = std::to_string((rand() % 99) + 1);
     tmp += op[rand() % numOp];
-    tmp += std::to_string(rand());
-    return tmp; 
+    tmp += std::to_string((rand() % 99) + 1);
+    return tmp;
 }
 
 unsigned long Lote::generarTiempoProceso()
 {
-    const short maxTmp = 25;
+    const short maxTmp = 5;
     unsigned long tmp = 1;
     srand(time(NULL));
     tmp = (rand() % maxTmp) + 1;
     return tmp;
 }
 
+///////////////////////////////////////////////
+/*           CAPTURA DE CAMPOS               */
+///////////////////////////////////////////////
 void Lote::capturarCampo(std::string msj, std::string msjError,
                          Proceso& proc,
                          bool(Proceso::*metodo)(const std::string&,
                                                 std::map<std::string,bool>*),
-                         std::map<std::string, bool>* IDs)
+                         std::map<std::string, bool>* idsUsed)
 {
     std::string aux;
     bool unaVez = false;
@@ -130,7 +142,7 @@ void Lote::capturarCampo(std::string msj, std::string msjError,
     while(1) {
         std::getline(std::cin, aux);
         // Si el input es correcto rompemos el búcle infinito
-        if ((proc.*metodo)(aux, IDs))
+        if ((proc.*metodo)(aux, idsUsed))
             break;
         if (!unaVez) {
             unaVez = true;
@@ -169,14 +181,19 @@ void Lote::capturarCampo(std::string msj, std::string msjError,
 
 void Lote::ejecutarProcesos()
 {
-    unsigned long cont;
-    Frame pendientes(1, 12, FIELD_WIDTH * 2, 15, AMARILLO);
-    Frame actual(FIELD_WIDTH * 2 + 2, 12, FIELD_WIDTH * 6, 15, VERDE);
-    Frame terminados(FIELD_WIDTH * 8 + 3, 12, FIELD_WIDTH * 5, 15, CYAN);
-   
+    float lotes = (float)this->procPend.size() / BATCH_MAX_CAPACITY;
+    unsigned long lotesRes = (lotes - (int)(lotes)) ? lotes : lotes + 1;
+    unsigned long lotesTerm = 0;
+    unsigned long cont = 0;
+    Frame pendientes(1, 5, FIELD_WIDTH * 2, 15, AMARILLO);
+    Frame actual(FIELD_WIDTH * 2 + 2, 5, FIELD_WIDTH * 5, 15, VERDE);
+    Frame terminados(FIELD_WIDTH * 8 + 4, 5, FIELD_WIDTH * 4, 15, CYAN);
+
+    Cursor::clrscr();
     imprimirVentanas(&pendientes, &actual, &terminados);
-    Cursor::gotoxy(72, 3);
-    std::cout << "Tiempo total transcurrido (segundos): ";
+    terminados.print("-----------(lote ");
+    terminados.print(std::to_string(++lotesTerm));
+    terminados.print(")-----------");
     while (this->procPend.size()) {
         this->procActual = new Proceso(this->procPend.front());
         this->procPend.erase(this->procPend.begin());
@@ -185,16 +202,25 @@ void Lote::ejecutarProcesos()
         imprimirVentanas(&pendientes);
         for (size_t i = 0; i < this->procPend.size(); ++i)
             llenarMarco(pendientes, this->procPend[i], false, false);
-               
+        
+        if (!(this->procTerm.size() % BATCH_MAX_CAPACITY)
+                && this->procTerm.size()) {
+            terminados.print("-----------(lote ");
+            terminados.print(std::to_string(++lotesTerm));
+            terminados.print(")-----------");
+        }
+
         cont = this->procActual->getTiempoMax();
         while (cont--) {
             actual.rmContent();
             imprimirVentanas(nullptr, &actual);
             llenarMarco(actual, *this->procActual, true, false);
-            Cursor::gotoxy(72, 4);
-            std::cout << "          ";
-            Cursor::gotoxy(72, 4);
-            std::cout << Lote::tiempoTotal;
+
+            Cursor::gotoxy(1, 2);
+            Cursor::rmLine(2);
+            std::cout << "Lotes pendientes: " << lotesRes << std::endl
+                      << "Tiempo transcurrido: " << Lote::tiempoTotal;
+          
             std::cout.flush();
             std::this_thread::sleep_for(std::chrono::seconds(1));
             ++Lote::tiempoTotal;
@@ -207,23 +233,20 @@ void Lote::ejecutarProcesos()
         llenarMarco(terminados, *this->procActual, false, true);
         this->procTerm.push_back(*this->procActual);
         delete this->procActual; this->procActual = nullptr;
+        if (!(this->procTerm.size() % BATCH_MAX_CAPACITY))
+            lotesRes--;
     }
-    Cursor::gotoxy(72, 4);
-    std::cout << Lote::tiempoTotal;
-    pendientes.rmContent();
-    actual.rmContent();
-    terminados.rmContent();
-    imprimirVentanas(&pendientes, &actual, &terminados);
+    pendientes.rmContent(); actual.rmContent();
+    imprimirVentanas(&pendientes, &actual);
 }
 
 void Lote::llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term)
 {
-    marco.print(proc.getNombre(), BLANCO, false, FIELD_WIDTH);
     if (!actual && !term)
         marco.print(std::to_string(proc.getTiempoMax()), BLANCO, true,
                     FIELD_WIDTH);
     else if (actual || term) {
-        marco.print(std::to_string(proc.getID()), BLANCO, false, FIELD_WIDTH);
+        marco.print(std::to_string(proc.getId()), BLANCO, false, FIELD_WIDTH);
         marco.print(proc.getOperacion(), BLANCO, false, FIELD_WIDTH);
         marco.print(std::to_string(proc.getTiempoMax()), BLANCO, false,
                     FIELD_WIDTH);
@@ -243,15 +266,15 @@ void Lote::imprimirVentanas(Frame* pend, Frame* act, Frame* term)
 {
     if (pend) {
         pend->print("procesos      pendientes:", BLANCO, true);
-        pend->print("NOM     TMPM    ", BLANCO, true);
+        pend->print("TMPM    ", BLANCO, true);
     }
     if (act) {
         act->print("procesos actual:", BLANCO, true);
-        act->print("NOM     ID      OP      TMPM    TMPR    TMPT    ",
+        act->print("ID      OP      TMPM    TMPR    TMPT    ",
                    BLANCO, true);
     }
     if (term){
         term->print("procesos terminados:", BLANCO, true);
-        term->print("NOM     ID      OP      TMPM    RES     ", BLANCO, true);
+        term->print("ID      OP      TMPM    RES     ", BLANCO, true);
     }
 }
