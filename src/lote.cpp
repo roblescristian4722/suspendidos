@@ -216,7 +216,8 @@ void Lote::ejecutarProcesos()
             if (this->procPend[i].getLote() == (lotesTerm + 1))
                 llenarMarco(pend, this->procPend[i], false, false);
         
-        cont = this->procActual->getTiempoMax();
+        cont = this->procActual->getTiempoMax()
+               - this->procActual->getTiempoTrans();
         while (cont--) {
             jump = escTeclado(cont);
             if (jump) break;
@@ -243,7 +244,8 @@ void Lote::ejecutarProcesos()
             this->procTerm.push_back(*this->procActual);
         }
         delete this->procActual; this->procActual = nullptr;
-        if (!(this->procTerm.size() % BATCH_MAX_CAPACITY)){
+        if (!(this->procTerm.size() % BATCH_MAX_CAPACITY)
+            && this->procTerm.size()){
             lotesRes--;
             lotesTerm++;
         }
