@@ -218,9 +218,8 @@ void Lote::ejecutarProcesos()
         
         cont = this->procActual->getTiempoMax()
                - this->procActual->getTiempoTrans();
+        jump = escTeclado(cont);
         while (cont--) {
-            jump = escTeclado(cont);
-            if (jump) break;
             actual.rmContent();
             imprimirVentanas(nullptr, &actual);
             llenarMarco(actual, *this->procActual, true, false);
@@ -231,6 +230,9 @@ void Lote::ejecutarProcesos()
                       << "Tiempo transcurrido: " << Lote::tiempoTotal;
           
             std::cout.flush();
+            jump = escTeclado(cont);
+            if (jump)
+                break;
             std::this_thread::sleep_for(std::chrono::seconds(1));
             ++Lote::tiempoTotal;
             this->procActual->setTiempoRes(cont);
@@ -242,13 +244,12 @@ void Lote::ejecutarProcesos()
             this->procActual->calculate();
             llenarMarco(term, *this->procActual, false, true);
             this->procTerm.push_back(*this->procActual);
+            if (!(this->procTerm.size() % BATCH_MAX_CAPACITY)){
+                lotesRes--;
+                lotesTerm++;
+            }
         }
         delete this->procActual; this->procActual = nullptr;
-        if (!(this->procTerm.size() % BATCH_MAX_CAPACITY)
-            && this->procTerm.size()){
-            lotesRes--;
-            lotesTerm++;
-        }
     }
     pend.rmContent(); actual.rmContent();
     imprimirVentanas(&pend, &actual);
@@ -261,8 +262,7 @@ bool Lote::escTeclado(unsigned long &cont)
         input = getch();
         switch (input) {
         case 'i': case 'I':
-            inter(cont);
-            return true;
+            return inter(cont);
         case 'p': case 'P':
             pausa();
             return false;
@@ -280,15 +280,20 @@ bool Lote::inter(unsigned long &cont)
 {
     std::vector<Proceso>::iterator it = this->procPend.begin();
     unsigned int lote = it->getLote();
-    cont = 0;
-    for (it; it->getLote() == lote && it != this->procPend.end(); it++);
-    this->procPend.insert(it, *this->procActual);
-    return true;
+    if ((this->procTerm.size() % BATCH_MAX_CAPACITY) != BATCH_MAX_CAPACITY - 1){
+        cont = 0;
+        for (it; it->getLote() == lote && it != this->procPend.end(); it++);
+        this->procPend.insert(it, *this->procActual);
+        return true;
+    }
+    return false;
 }
 
 void Lote::error(unsigned long &cont)
 {
     
+    cont = 0;
+
 }
 
 void Lote::pausa()

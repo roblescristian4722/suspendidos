@@ -57,7 +57,8 @@ private:
     void error(unsigned long &cont);
     // Pausa un proceso hasta que usuario presione "c" para continuar
     void pausa();
-    // Casos para la función kbhit
+    // Escucha el teclado y ejecuta uno de los posibles casos con
+    // kbhit: i, p, c, e
     bool escTeclado(unsigned long& cont);
 
 public:
