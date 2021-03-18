@@ -10,7 +10,7 @@ private:
     std::string nombre;
     std::string operacion;
     unsigned int lote;
-    long resultado;
+    std::string resultado;
     unsigned long id;
     unsigned long tiempoMax;
     unsigned long tiempoRes;
@@ -30,7 +30,7 @@ public:
     // Obtiene el tiempo máximo estimado de ejecución del proceso (en segundos)
     const unsigned long& getTiempoMax() const;
     // Obtiene el resultado de la operación 
-    const long& getResultado() const;
+    const std::string& getResultado() const;
     // Obtiene el tiempo restante
     const unsigned long& getTiempoRes() const;
     // Obtiene el tiepo transcurrido
@@ -40,6 +40,9 @@ public:
     
     // Genera el resultado de la operación
     void calculate();
+    // Asigna el resultado de la operación (usado principalmente cuando hay un
+    // error en la ejecución)
+    void setResultado(const std::string& resultado);
     // Asigna el tiempo restante
     void setTiempoRes(const unsigned long& tiempoRes);
     // Asigna el tiepo transcurrido

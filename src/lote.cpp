@@ -194,7 +194,7 @@ void Lote::ejecutarProcesos()
 {
     unsigned int lotesRes = this->procPend.size() / BATCH_MAX_CAPACITY;
     unsigned int lotesTerm = 0;
-    unsigned long cont = 0;
+    long cont = 0;
     bool jump;
     
     Cursor::clrscr();
@@ -219,7 +219,7 @@ void Lote::ejecutarProcesos()
         cont = this->procActual->getTiempoMax()
                - this->procActual->getTiempoTrans();
         jump = escTeclado(cont);
-        while (cont--) {
+        while ((cont--) > 0) {
             actual.rmContent();
             imprimirVentanas(nullptr, &actual);
             llenarMarco(actual, *this->procActual, true, false);
@@ -241,7 +241,8 @@ void Lote::ejecutarProcesos()
         }
 
         if (!jump) {
-            this->procActual->calculate();
+            if (cont > -1)
+                this->procActual->calculate();
             llenarMarco(term, *this->procActual, false, true);
             this->procTerm.push_back(*this->procActual);
             if (!(this->procTerm.size() % BATCH_MAX_CAPACITY)){
@@ -255,7 +256,7 @@ void Lote::ejecutarProcesos()
     imprimirVentanas(&pend, &actual);
 }
 
-bool Lote::escTeclado(unsigned long &cont)
+bool Lote::escTeclado(long &cont)
 {
     unsigned char input;
     if (kbhit()) {
@@ -276,7 +277,7 @@ bool Lote::escTeclado(unsigned long &cont)
     return false;
 }
 
-bool Lote::inter(unsigned long &cont)
+bool Lote::inter(long &cont)
 {
     std::vector<Proceso>::iterator it = this->procPend.begin();
     unsigned int lote = it->getLote();
@@ -289,11 +290,10 @@ bool Lote::inter(unsigned long &cont)
     return false;
 }
 
-void Lote::error(unsigned long &cont)
+void Lote::error(long &cont)
 {
-    
-    cont = 0;
-
+    cont = -1;
+    this->procActual->setResultado("ERROR");
 }
 
 void Lote::pausa()
@@ -337,8 +337,7 @@ void Lote::llenarMarco(Frame& marco, Proceso& proc, bool actual, bool term)
                     FIELD_WIDTH);
     }
     else if (term) {
-        marco.print(std::to_string(proc.getResultado()), BLANCO, false,
-                    FIELD_WIDTH);
+        marco.print(proc.getResultado(), BLANCO, false, FIELD_WIDTH);
         marco.print(std::to_string(proc.getLote()), BLANCO, true,
                     FIELD_WIDTH);
     }

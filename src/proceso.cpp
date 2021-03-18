@@ -20,7 +20,7 @@ const std::string& Proceso::getOperacion() const
 { return this->operacion; }
 const unsigned int& Proceso::getLote() const
 { return this->lote; }
-const long& Proceso::getResultado() const
+const std::string& Proceso::getResultado() const
 { return this->resultado; }
 const unsigned long& Proceso::getTiempoTrans() const
 { return this->tiempoTrans; }
@@ -80,6 +80,8 @@ void Proceso::setTiempoRes(const unsigned long& tiempoRes)
 { this->tiempoRes = tiempoRes; }
 void Proceso::setLote(const unsigned int &lote)
 { this->lote = lote; }
+void Proceso::setResultado(const std::string &resultado)
+{ this->resultado = resultado; }
 
 void Proceso::calculate()
 {
@@ -122,19 +124,19 @@ void Proceso::calculate()
 
     switch (op) {
         case '/':
-            this->resultado = num1 / num2;
+            this->resultado = std::to_string(num1 / num2);
         break;
         case '%':
-            this->resultado = num1 % num2;
+            this->resultado = std::to_string(num1 % num2);
         break;
         case '*':
-            this->resultado = num1 * num2;
+            this->resultado = std::to_string(num1 * num2);
         break;
         case '+':
-            this->resultado = num1 + num2;
+            this->resultado = std::to_string(num1 + num2);
         break;
         case '-':
-            this->resultado = num1 - num2;
+            this->resultado = std::to_string(num1 - num2);
         break;
     }
 }
