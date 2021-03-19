@@ -199,7 +199,7 @@ void Lote::ejecutarProcesos()
     
     Cursor::clrscr();
     Frame pend(1, 5, FIELD_WIDTH * 3 + 2, 15, AMARILLO);
-    Frame actual(FIELD_WIDTH * 3 + 4, 5, FIELD_WIDTH * 5, 8, VERDE);
+    Frame actual(FIELD_WIDTH * 3 + 4, 5, FIELD_WIDTH * 5, 6, VERDE);
     Frame term(FIELD_WIDTH * 8 + 5, 5, FIELD_WIDTH * 5, 25, CYAN);
     
     if (!(this->procPend.size() % BATCH_MAX_CAPACITY))
@@ -218,8 +218,8 @@ void Lote::ejecutarProcesos()
         
         cont = this->procActual->getTiempoMax()
                - this->procActual->getTiempoTrans();
-        jump = escTeclado(cont);
         while ((cont--) > 0) {
+            jump = escTeclado(cont);
             actual.rmContent();
             imprimirVentanas(nullptr, &actual);
             llenarMarco(actual, *this->procActual, true, false);
@@ -230,7 +230,6 @@ void Lote::ejecutarProcesos()
                       << "Tiempo transcurrido: " << Lote::tiempoTotal;
           
             std::cout.flush();
-            jump = escTeclado(cont);
             if (jump)
                 break;
             std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -240,8 +239,8 @@ void Lote::ejecutarProcesos()
                                        this->procActual->getTiempoTrans() + 1);
         }
 
-        if (!jump) {
-            if (cont > -1)
+        if (!jump || cont == -2) {
+            if (cont != -2)
                 this->procActual->calculate();
             llenarMarco(term, *this->procActual, false, true);
             this->procTerm.push_back(*this->procActual);
@@ -268,8 +267,9 @@ bool Lote::escTeclado(long &cont)
             pausa();
             return false;
         case 'e': case 'E':
-            error(cont);
-            return false;
+            cont = -2;
+            this->procActual->setResultado("ERROR");
+            return true;
         default:
             return false;
         }
@@ -288,12 +288,6 @@ bool Lote::inter(long &cont)
         return true;
     }
     return false;
-}
-
-void Lote::error(long &cont)
-{
-    cont = -1;
-    this->procActual->setResultado("ERROR");
 }
 
 void Lote::pausa()
@@ -347,7 +341,7 @@ void Lote::imprimirVentanas(Frame* pend, Frame* act, Frame* term)
 {
     if (pend) {
         pend->print("procesos pendientes:", BLANCO, true);
-        pend->print("ID      TMPM    TT", BLANCO, true);
+        pend->print("ID      TMPM    TMPT", BLANCO, true);
     }
     if (act) {
         act->print("procesos actual:", BLANCO, true);

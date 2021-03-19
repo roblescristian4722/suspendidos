@@ -16,4 +16,8 @@ int main()
     l.iniciar();
 
     Cursor::gotoxy(1, 31);
+    std::cout << Cursor::colorText(
+                 VERDE, "Fin de la ejecucion, presione ENTER para salir")
+              << std::endl;
+    std::cin.get();
 }

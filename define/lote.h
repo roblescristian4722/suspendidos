@@ -53,8 +53,6 @@ private:
     // Interrumpe un proceso y lo pone al final de la cola de procesos del
     // lote actual
     bool inter(long &cont);
-    // Cancela la ejecución del proceso y muestra un error como resultado
-    void error(long &cont);
     // Pausa un proceso hasta que usuario presione "c" para continuar
     void pausa();
     // Escucha el teclado y ejecuta uno de los posibles casos con
