@@ -1,12 +1,4 @@
 #include "../define/lote.h"
-#include "../define/cursor.h"
-#include "../define/proceso.h"
-#include <chrono>
-#include <conio.h>
-#include <cstdio>
-#include <cstdlib>
-#include <ostream>
-#include <thread>
 
 unsigned long Lote::tiempoTotal = 0;
 std::map<std::string, bool> Lote::idsUsed;
