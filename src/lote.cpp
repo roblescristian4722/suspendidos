@@ -75,7 +75,7 @@ void Lote::iniciar()
     unsigned long proc = 0;
     unsigned long cont = 0;
     
-    std::cout << Cursor::colorText(VERDE, "Lotes a capturar: ");
+    std::cout << Cursor::colorText(VERDE, "Procesos a capturar: ");
     std::cin >> proc;
     while (proc--)
         capturarProceso(++cont);
