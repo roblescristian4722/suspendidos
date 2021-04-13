@@ -200,7 +200,7 @@ unsigned short NewProcesses::onMemory()
     return tmp;
 }
 
-void NewProcesses::checkBlocked()
+void NewProcesses::checkBlocked(Frame &f)
 {
     std::vector<Process>::iterator it = this->blocked.begin();
     std::vector<Process>::iterator itReady = this->newProc.begin();
@@ -216,14 +216,24 @@ void NewProcesses::checkBlocked()
             while(memory--)
                 itReady++;
             this->newProc.insert(itReady, aux);
+            fillReady(f, aux);
         }
     }
+}
+
+size_t NewProcesses::calculateReady()
+{
+    int tmp = this->current != nullptr ? 1 : 0;
+    tmp += (int)this->blocked.size();
+    tmp -= MAX_READY_JOB_AMOUNT + 1;
+    tmp = tmp < 0 ? tmp * -1 : tmp;
+    return tmp;
 }
 
 void NewProcesses::executeProcess()
 {
     unsigned int readyProcesses = (this->newProc.size() < MAX_READY_JOB_AMOUNT)
-                                  ? 0 : this->newProc.size() - MAX_READY_JOB_AMOUNT - 1;
+                        ? 0 : this->newProc.size() - MAX_READY_JOB_AMOUNT - 1;
     long cont = 0;
     unsigned short jump;
     Cursor::clrscr();
@@ -236,18 +246,15 @@ void NewProcesses::executeProcess()
     printFrames(&pend, &crrnt, &fnshd, &bloq);
     while (processLeft()) {
         jump = false;
-
         this->current = new Process(this->newProc.front());
         this->newProc.erase(this->newProc.begin());
 
         pend.rmContent();
         printFrames(&pend);
-        for (size_t i = 0; i < MAX_READY_JOB_AMOUNT &&
-                                    onMemory() <= MAX_READY_JOB_AMOUNT + 1; ++i)
+        for (size_t i = 0; i < this->newProc.size() && i < calculateReady(); ++i)
                 fillReady(pend, this->newProc[i]);
         
-        cont = this->current->getMaxTime()
-               - this->current->getLapsedTime();
+        cont = this->current->getMaxTime() - this->current->getLapsedTime();
         while (cont--) {
             jump = keyListener(cont);
             bloq.rmContent();
@@ -267,7 +274,7 @@ void NewProcesses::executeProcess()
                 break;
             std::this_thread::sleep_for(std::chrono::seconds(1));
             ++NewProcesses::lapsedTime;
-            checkBlocked();
+            checkBlocked(pend);
             this->current->setRemTime(cont);
             this->current->setLapsedTime(this->current->getLapsedTime() + 1);
         }

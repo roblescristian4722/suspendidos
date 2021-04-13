@@ -63,13 +63,15 @@ private:
     unsigned short keyListener(long& cont);
     bool processLeft();
     unsigned short onMemory();
-    void checkBlocked();
+    void checkBlocked(Frame &f);
     void fillBlocked(Frame &f);
     void fillCurrent(Frame &f, Process &p);
     void fillFinished(Frame &f, Process &p);
     void fillReady(Frame &f, Process &p);
+    size_t calculateReady();
 
-        public : NewProcesses();
+public :
+    NewProcesses();
     // Constructor copy
     NewProcesses(const NewProcesses& NewProcesses);
     ~NewProcesses();
