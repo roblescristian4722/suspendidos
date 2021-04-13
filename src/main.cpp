@@ -4,16 +4,16 @@
 #include <thread>
 #include <regex>
 #include "../define/cursor.h"
-#include "../define/proceso.h"
-#include "../define/lote.h"
+#include "../define/process.h"
+#include "../define/newprocesses.h"
 
 bool test(int n)
 { return n; }
 
 int main()
 { 
-    Lote l;
-    l.iniciar();
+    NewProcesses l;
+    l.init();
 
     Cursor::gotoxy(1, 31);
     std::cout << Cursor::colorText(

@@ -1,4 +1,5 @@
 @echo off
 
-g++ src\* -Idefine\ -o build\procesamientoLotes.exe
+mkdir build
+g++ src\* -B define -o build\process.exe
 cd build
