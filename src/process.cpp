@@ -1,18 +1,21 @@
 #include "../define/process.h"
 
 Process::Process(unsigned long id, std::string name, std::string op, 
-                 unsigned long maxTime) : name(name), id(id),
+                 unsigned short maxTime) : name(name), id(id),
                  maxTime(maxTime), op(op),
                  remTime(maxTime), lapsedTime(0) {}
 
 Process::Process()
-{ this->lapsedTime = 0; }
+{
+    this->lapsedTime = 0;
+    this->blockedTime = 0;
+}
 
 Process::~Process() {}
 
 const unsigned long& Process::getId() const
 { return this->id; }
-const unsigned long& Process::getMaxTime() const
+const unsigned short& Process::getMaxTime() const
 { return this->maxTime; }
 const std::string& Process::getName() const
 { return this->name; }
@@ -20,10 +23,22 @@ const std::string& Process::getOp() const
 { return this->op; }
 const std::string& Process::getResult() const
 { return this->result; }
-const unsigned long& Process::getLapsedTime() const
+const unsigned short& Process::getLapsedTime() const
 { return this->lapsedTime; }
-const unsigned long& Process::getRemTime() const
+const unsigned short& Process::getRemTime() const
 { return this->remTime; }
+const unsigned short &Process::getArrivalTime() const
+{ return this->arrivalTime; }
+const unsigned short &Process::getFinishTime()const
+{ return this->finishTime; }
+const unsigned short &Process::getReturnTime() const
+{ return this->returnTime; }
+const unsigned short &Process::getWaitingTime() const
+{ return this->waitingTime; }
+const unsigned short &Process::getServiceTime() const
+{ return this->serviceTime; }
+const unsigned short &Process::getBlockedTime() const
+{ return this->blockedTime; }
 
 //Setters validados
 bool Process::setName(const std::string& name)
@@ -72,12 +87,24 @@ bool Process::setMaxTime(const std::string& maxTime)
     return false;
 }
 
-void Process::setLapsedTime(const unsigned long& lapsedTime)
+void Process::setLapsedTime(const unsigned short& lapsedTime)
 { this->lapsedTime = lapsedTime; }
-void Process::setRemTime(const unsigned long& remTime)
+void Process::setRemTime(const unsigned short& remTime)
 { this->remTime = remTime; }
 void Process::setResult(const std::string &result)
 { this->result = result; }
+void Process::setArrivalTime(const unsigned short &arrivalTime)
+{ this->arrivalTime = arrivalTime; }
+void Process::setFinishTime(const unsigned short &finishTime)
+{ this->finishTime = finishTime; }
+void Process::setReturnTime(const unsigned short &returnTime)
+{ this->returnTime = returnTime; }
+void Process::setWaitingTime(const unsigned short &waitingTime)
+{ this->waitingTime = waitingTime; }
+void Process::setServiceTime(const unsigned short &serviceTime)
+{ this->serviceTime = serviceTime; }
+void Process::setBlockedTime(const unsigned short &blockedTime)
+{ this->blockedTime = blockedTime; }
 
 void Process::calculate()
 {

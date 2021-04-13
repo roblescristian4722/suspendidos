@@ -12,6 +12,7 @@ NewProcesses::NewProcesses()
 NewProcesses::NewProcesses(const NewProcesses& NewProcesses)
 {
     this->id = NewProcesses.id;
+    this->newProc = NewProcesses.newProc;
     this->ready = NewProcesses.ready;
     this->finished = NewProcesses.finished;
     this->current = NewProcesses.current != nullptr
@@ -26,6 +27,7 @@ const NewProcesses& NewProcesses::operator=(const NewProcesses &NewProcesses)
 {
     this->id = NewProcesses.id;
     this->ready = NewProcesses.ready;
+    this->newProc = NewProcesses.newProc;
     this->finished = NewProcesses.finished;
     this->current = NewProcesses.current != nullptr
         ? new Process(NewProcesses.current->getId(),
@@ -88,7 +90,7 @@ void NewProcesses::init()
 void NewProcesses::obtainProcess(const unsigned long& cont)
 {
     Process aux;
-    unsigned int NewProcesses = cont / MAX_JOB_AMOUNT;
+    unsigned int NewProcesses = cont / MAX_READY_JOB_AMOUNT;
     
     // Captura de ID
     aux.setId(std::to_string(cont));
@@ -96,7 +98,7 @@ void NewProcesses::obtainProcess(const unsigned long& cont)
     aux.setOp(generateOp());
     // Captura de tiempo máximo
     aux.setMaxTime(std::to_string(generateTime()));
-    this->ready.push_back(aux);
+    this->newProc.push_back(aux);
 }
 
 ///////////////////////////////////////////////
@@ -175,44 +177,85 @@ void NewProcesses::obtainField(std::string msj, std::string msjError,
 }
 
 ///////////////////////////////////////////////
-/*           EJECUCIÓN DE ProcessS           */
+/*           EJECUCIÓN DE PROCESOS           */
 ///////////////////////////////////////////////
+
+bool NewProcesses::processLeft()
+{
+    if (!this->newProc.size())
+        if (!this->blocked.size())
+            if (!this->ready.size())
+                if (this->current == nullptr)
+                    return false;
+    return true;
+}
+
+unsigned short NewProcesses::onMemory()
+{
+    unsigned short tmp = (this->newProc.size() < MAX_READY_JOB_AMOUNT)
+                       ? this->newProc.size() : MAX_READY_JOB_AMOUNT;
+    if (this->current != nullptr)
+        tmp++;
+    tmp += this->blocked.size();
+    return tmp;
+}
+
+void NewProcesses::checkBlocked()
+{
+    std::vector<Process>::iterator it = this->blocked.begin();
+    std::vector<Process>::iterator itReady = this->newProc.begin();
+    size_t memory;
+    Process aux;
+    for (; it < this->blocked.end(); it++) {
+        it->setBlockedTime(it->getBlockedTime() - 1);
+        if (!it->getBlockedTime()) {
+            memory = onMemory() - this->blocked.size();
+            memory = this->current != nullptr ? memory - 1 : memory;
+            aux = *it;
+            this->blocked.erase(it);
+            while(memory--)
+                itReady++;
+            this->newProc.insert(itReady, aux);
+        }
+    }
+}
+
 void NewProcesses::executeProcess()
 {
-    unsigned int readyProcesses = (this->ready.size() < MAX_JOB_AMOUNT)
-                                  ? 0 : this->ready.size() - MAX_JOB_AMOUNT - 1;
+    unsigned int readyProcesses = (this->newProc.size() < MAX_READY_JOB_AMOUNT)
+                                  ? 0 : this->newProc.size() - MAX_READY_JOB_AMOUNT - 1;
     long cont = 0;
-    bool jump;
-    
+    unsigned short jump;
     Cursor::clrscr();
-    Frame pend(1, FRAME_Y, FIELD_WIDTH * 3 + 2, MAX_SIZE_JOBS_FRAME, AMARILLO);
-    Frame actual(FIELD_WIDTH * 3 + 4, FRAME_Y, FIELD_WIDTH * 5, 6, VERDE);
-    Frame term(FIELD_WIDTH * 8 + 5, FRAME_Y, FIELD_WIDTH * 4, 25, CYAN);
-    Frame bloq(1, FRAME_Y + MAX_SIZE_JOBS_FRAME + 1, FIELD_WIDTH * 2 + 1,
-              MAX_SIZE_JOBS_FRAME, MORADO);
+    Frame pend(1, FRAME_Y, FIELD_WIDTH * 3 + 2, MAX_SIZE_JOBS_FRAME + 1, AMARILLO);
+    Frame crrnt(FIELD_WIDTH * 3 + 4, FRAME_Y, FIELD_WIDTH * 5, 6, VERDE);
+    Frame fnshd(FIELD_WIDTH * 8 + 5, FRAME_Y, FIELD_WIDTH * 4, 25, CYAN);
+    Frame bloq(1, FRAME_Y + MAX_SIZE_JOBS_FRAME + 1, FIELD_WIDTH * 2 + 2,
+              MAX_SIZE_JOBS_FRAME + 1, MORADO);
 
-    // Obtiene procesos nuevos
-    if (!(this->ready.size() % MAX_JOB_AMOUNT))
-        readyProcesses--;
-
-    printFrames(&pend, &actual, &term, &bloq);
-    while (this->ready.size()) {
+    printFrames(&pend, &crrnt, &fnshd, &bloq);
+    while (processLeft()) {
         jump = false;
-        this->current = new Process(this->ready.front());
-        this->ready.erase(this->ready.begin());
+
+        this->current = new Process(this->newProc.front());
+        this->newProc.erase(this->newProc.begin());
 
         pend.rmContent();
         printFrames(&pend);
-        for (size_t i = 0; i < this->ready.size() && i < MAX_JOB_AMOUNT; ++i)
-                fillFrame(pend, this->ready[i], false, false);
+        for (size_t i = 0; i < MAX_READY_JOB_AMOUNT &&
+                                    onMemory() <= MAX_READY_JOB_AMOUNT + 1; ++i)
+                fillReady(pend, this->newProc[i]);
         
         cont = this->current->getMaxTime()
                - this->current->getLapsedTime();
-        while ((cont--) > 0) {
+        while (cont--) {
             jump = keyListener(cont);
-            actual.rmContent();
-            printFrames(nullptr, &actual);
-            fillFrame(actual, *this->current, true, false);
+            bloq.rmContent();
+            printFrames(nullptr, nullptr, nullptr, &bloq);
+            fillBlocked(bloq);
+            crrnt.rmContent();
+            printFrames(nullptr, &crrnt);
+            fillCurrent(crrnt, *this->current);
 
             Cursor::gotoxy(1, 2);
             Cursor::rmLine(2);
@@ -224,26 +267,27 @@ void NewProcesses::executeProcess()
                 break;
             std::this_thread::sleep_for(std::chrono::seconds(1));
             ++NewProcesses::lapsedTime;
+            checkBlocked();
             this->current->setRemTime(cont);
-            this->current->setLapsedTime(
-                                       this->current->getLapsedTime() + 1);
+            this->current->setLapsedTime(this->current->getLapsedTime() + 1);
         }
 
-        if (!jump || cont == -2) {
-            if (cont != -2)
+        if (!jump || jump == 2) {
+            if (jump != 2)
                 this->current->calculate();
-            fillFrame(term, *this->current, false, true);
+            fillFinished(fnshd, *this->current);
             this->finished.push_back(*this->current);
             if (readyProcesses)
                 readyProcesses--;
         }
         delete this->current; this->current = nullptr;
     }
-    pend.rmContent(); actual.rmContent();
-    printFrames(&pend, &actual);
+    pend.rmContent();
+    crrnt.rmContent();
+    printFrames(&pend, &crrnt);
 }
 
-bool NewProcesses::keyListener(long &cont)
+unsigned short NewProcesses::keyListener(long &cont)
 {
     unsigned char input;
     if (kbhit()) {
@@ -253,29 +297,23 @@ bool NewProcesses::keyListener(long &cont)
             return inter(cont);
         case 'p': case 'P':
             pause();
-            return false;
+            return 0;
         case 'e': case 'E':
-            cont = -2;
             this->current->setResult("ERROR");
-            return true;
+            return 2;
         default:
-            return false;
+            return 0;
         }
     }
-    return false;
+    return 0;
 }
 
-bool NewProcesses::inter(long &cont)
+unsigned short NewProcesses::inter(long &cont)
 {
-    std::vector<Process>::iterator it = this->ready.begin();
-    //unsigned int NewProcesses = it->getNewProcesses();
-    if ((this->finished.size() % MAX_JOB_AMOUNT) != MAX_JOB_AMOUNT - 1){
-        cont = 0;
-    //    for (it; it->getNewProcesses() == NewProcesses && it != this->ready.end(); it++);
-        this->ready.insert(it, *this->current);
-        return true;
-    }
-    return false;
+    Process aux = *this->current;
+    aux.setBlockedTime(MAX_BLOCKED_TIME);
+    this->blocked.push_back(aux);
+    return 1;
 }
 
 void NewProcesses::pause()
@@ -298,44 +336,54 @@ void NewProcesses::pause()
 ///////////////////////////////////////////////
 /*           IMPRESIÓN DE VENTANAS           */
 ///////////////////////////////////////////////
-void NewProcesses::fillFrame(Frame& marco, Process& proc, bool actual, bool term)
+void NewProcesses::fillBlocked(Frame &f)
 {
-    marco.print(std::to_string(proc.getId()), BLANCO, false, FIELD_WIDTH);
-    if (!actual && !term) {
-        marco.print(std::to_string(proc.getMaxTime()), BLANCO, false,
-                    FIELD_WIDTH);
-        marco.print(std::to_string(proc.getLapsedTime()), BLANCO, true,
-                    FIELD_WIDTH);
+    for (size_t i = 0; i < this->blocked.size(); ++i) {
+        f.print(std::to_string(this->blocked[i].getId()), BLANCO, false,
+                FIELD_WIDTH);
+        f.print(std::to_string(this->blocked[i].getBlockedTime()), BLANCO, true,
+                FIELD_WIDTH);
     }
-    else if (actual || term) {
-        marco.print(proc.getOp(), BLANCO, false, FIELD_WIDTH);
-        marco.print(std::to_string(proc.getMaxTime()), BLANCO, false,
-                    FIELD_WIDTH);
-    }
-    if (actual) {
-        marco.print(std::to_string(proc.getRemTime()), BLANCO, false,
-                    FIELD_WIDTH);
-        marco.print(std::to_string(proc.getLapsedTime()), BLANCO, true,
-                    FIELD_WIDTH);
-    }
-    else if (term)
-        marco.print(proc.getResult(), BLANCO, true, FIELD_WIDTH);
 }
 
-void NewProcesses::printFrames(Frame* pend, Frame* act, Frame* term, Frame* bloq)
+void NewProcesses::fillCurrent(Frame &f, Process &p)
+{
+    f.print(std::to_string(p.getId()), BLANCO, false, FIELD_WIDTH);
+    f.print(p.getOp(), BLANCO, false, FIELD_WIDTH);
+    f.print(std::to_string(p.getMaxTime()), BLANCO, false, FIELD_WIDTH);
+    f.print(std::to_string(p.getRemTime()), BLANCO, false, FIELD_WIDTH);
+    f.print(std::to_string(p.getLapsedTime()), BLANCO, true, FIELD_WIDTH);
+}
+
+void NewProcesses::fillFinished(Frame &f, Process &p)
+{
+    f.print(std::to_string(p.getId()), BLANCO, false, FIELD_WIDTH);
+    f.print(p.getOp(), BLANCO, false, FIELD_WIDTH);
+    f.print(std::to_string(p.getMaxTime()), BLANCO, false, FIELD_WIDTH);
+    f.print(p.getResult(), BLANCO, true, FIELD_WIDTH);
+}
+
+void NewProcesses::fillReady(Frame &f, Process &p)
+{
+    f.print(std::to_string(p.getId()), BLANCO, false, FIELD_WIDTH);
+    f.print(std::to_string(p.getMaxTime()), BLANCO, false, FIELD_WIDTH);
+    f.print(std::to_string(p.getLapsedTime()), BLANCO, true, FIELD_WIDTH);
+}
+
+void NewProcesses::printFrames(Frame* pend, Frame* act, Frame* fnshd, Frame* bloq)
 {
     if (pend) {
         pend->print("Processs pendientes:", BLANCO, true);
         pend->print("ID      TME     TMT", BLANCO, true);
     }
     if (act) {
-        act->print("Processs actual:", BLANCO, true);
+        act->print("Processs crrnt:", BLANCO, true);
         act->print("ID      OP      TME     TMR     TMT",
                    BLANCO, true);
     }
-    if (term){
-        term->print("Processs terminados:", BLANCO, true);
-        term->print("ID      OP      TME     RES", BLANCO, true);
+    if (fnshd){
+        fnshd->print("Processs terminados:", BLANCO, true);
+        fnshd->print("ID      OP      TME     RES", BLANCO, true);
     }
     if (bloq) {
         bloq->print("Processs bloqueados:", BLANCO, true);

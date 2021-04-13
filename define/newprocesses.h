@@ -10,17 +10,20 @@
 #include "process.h"
 #include "cursor.h"
 #define FIELD_WIDTH 8
-#define MAX_JOB_AMOUNT 4
-#define FRAME_Y 4
+#define MAX_READY_JOB_AMOUNT 4
+#define FRAME_Y 5
 #define MAX_SIZE_JOBS_FRAME 8
+#define MAX_BLOCKED_TIME 5
 
 class NewProcesses
 {
 private:
     unsigned long id;
+    std::vector<Process> newProc;
     std::vector<Process> ready;
     Process* current;
     std::vector<Process> finished;
+    std::vector<Process> blocked;
     static std::map<std::string, bool> idsUsed;
     static unsigned long lapsedTime;
 
@@ -50,19 +53,23 @@ private:
     // Se itera por la lista de procesos pendientes y se ejecutan de en orden
     // de uno en uno
     void executeProcess();
-    // Imprime los datos del Process en un marco
-    void fillFrame(Frame& marco, Process& proc, bool actual, bool term);
     // Interrumpe un Process y lo pone al final de la cola de procesos del
     // NewProcesses actual
-    bool inter(long &cont);
+    unsigned short inter(long &cont);
     // Pausa un Process hasta que usuario presione "c" para continuar
     void pause();
     // Escucha el teclado y ejecuta uno de los posibles casos con
     // kbhit: i, p, c, e
-    bool keyListener(long& cont);
+    unsigned short keyListener(long& cont);
+    bool processLeft();
+    unsigned short onMemory();
+    void checkBlocked();
+    void fillBlocked(Frame &f);
+    void fillCurrent(Frame &f, Process &p);
+    void fillFinished(Frame &f, Process &p);
+    void fillReady(Frame &f, Process &p);
 
-public:
-    NewProcesses();
+        public : NewProcesses();
     // Constructor copy
     NewProcesses(const NewProcesses& NewProcesses);
     ~NewProcesses();
