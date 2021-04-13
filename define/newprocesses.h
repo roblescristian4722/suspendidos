@@ -10,7 +10,7 @@
 #include "process.h"
 #include "cursor.h"
 #define FIELD_WIDTH 8
-#define MAX_JOB_AMOUNT 5
+#define MAX_JOB_AMOUNT 4
 #define FRAME_Y 4
 #define MAX_SIZE_JOBS_FRAME 8
 
@@ -18,7 +18,7 @@ class NewProcesses
 {
 private:
     unsigned long id;
-    std::vector<Process> pending;
+    std::vector<Process> ready;
     Process* current;
     std::vector<Process> finished;
     static std::map<std::string, bool> idsUsed;
@@ -68,9 +68,9 @@ public:
     ~NewProcesses();
     const NewProcesses& operator =(const NewProcesses& NewProcesses);
 
-    // Imprime en pantalla los procesos pendientes de ejecución en orden
-    const std::vector<Process>& getPending() const;
-    // Imprime en pantalla los procesos pendientes de ejecución en orden
+    // Imprime en pantalla los procesos listos de ejecución en orden
+    const std::vector<Process>& getReady() const;
+    // Imprime en pantalla los procesos finalizados de ejecución en orden
     void printFinished();
     // Retorna un puntero hacia el Process en ejecución
     Process* getCurrent() const;

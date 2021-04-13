@@ -12,7 +12,7 @@ NewProcesses::NewProcesses()
 NewProcesses::NewProcesses(const NewProcesses& NewProcesses)
 {
     this->id = NewProcesses.id;
-    this->pending = NewProcesses.pending;
+    this->ready = NewProcesses.ready;
     this->finished = NewProcesses.finished;
     this->current = NewProcesses.current != nullptr
         ? new Process(NewProcesses.current->getId(),
@@ -25,7 +25,7 @@ NewProcesses::NewProcesses(const NewProcesses& NewProcesses)
 const NewProcesses& NewProcesses::operator=(const NewProcesses &NewProcesses)
 {
     this->id = NewProcesses.id;
-    this->pending = NewProcesses.pending;
+    this->ready = NewProcesses.ready;
     this->finished = NewProcesses.finished;
     this->current = NewProcesses.current != nullptr
         ? new Process(NewProcesses.current->getId(),
@@ -44,8 +44,8 @@ NewProcesses::~NewProcesses()
     this->current = nullptr;
 }
 
-const std::vector<Process>& NewProcesses::getPending() const
-{ return this->pending; }
+const std::vector<Process>& NewProcesses::getReady() const
+{ return this->ready; }
 
 Process* NewProcesses::getCurrent() const
 { return this->current; }
@@ -96,7 +96,7 @@ void NewProcesses::obtainProcess(const unsigned long& cont)
     aux.setOp(generateOp());
     // Captura de tiempo máximo
     aux.setMaxTime(std::to_string(generateTime()));
-    this->pending.push_back(aux);
+    this->ready.push_back(aux);
 }
 
 ///////////////////////////////////////////////
@@ -179,30 +179,32 @@ void NewProcesses::obtainField(std::string msj, std::string msjError,
 ///////////////////////////////////////////////
 void NewProcesses::executeProcess()
 {
-    unsigned int NewProcessessRes = this->pending.size() / MAX_JOB_AMOUNT;
-    unsigned int NewProcessessTerm = 0;
+    unsigned int readyProcesses = (this->ready.size() < MAX_JOB_AMOUNT)
+                                  ? 0 : this->ready.size() - MAX_JOB_AMOUNT - 1;
     long cont = 0;
     bool jump;
     
     Cursor::clrscr();
     Frame pend(1, FRAME_Y, FIELD_WIDTH * 3 + 2, MAX_SIZE_JOBS_FRAME, AMARILLO);
     Frame actual(FIELD_WIDTH * 3 + 4, FRAME_Y, FIELD_WIDTH * 5, 6, VERDE);
-    Frame term(FIELD_WIDTH * 8 + 5, FRAME_Y, FIELD_WIDTH * 5, 25, CYAN);
+    Frame term(FIELD_WIDTH * 8 + 5, FRAME_Y, FIELD_WIDTH * 4, 25, CYAN);
     Frame bloq(1, FRAME_Y + MAX_SIZE_JOBS_FRAME + 1, FIELD_WIDTH * 2 + 1,
               MAX_SIZE_JOBS_FRAME, MORADO);
 
-    if (!(this->pending.size() % MAX_JOB_AMOUNT))
-        NewProcessessRes--;
+    // Obtiene procesos nuevos
+    if (!(this->ready.size() % MAX_JOB_AMOUNT))
+        readyProcesses--;
+
     printFrames(&pend, &actual, &term, &bloq);
-    while (this->pending.size()) {
+    while (this->ready.size()) {
         jump = false;
-        this->current = new Process(this->pending.front());
-        this->pending.erase(this->pending.begin());
+        this->current = new Process(this->ready.front());
+        this->ready.erase(this->ready.begin());
 
         pend.rmContent();
         printFrames(&pend);
-        for (size_t i = 0; i < this->pending.size(); ++i)
-                fillFrame(pend, this->pending[i], false, false);
+        for (size_t i = 0; i < this->ready.size() && i < MAX_JOB_AMOUNT; ++i)
+                fillFrame(pend, this->ready[i], false, false);
         
         cont = this->current->getMaxTime()
                - this->current->getLapsedTime();
@@ -214,7 +216,7 @@ void NewProcesses::executeProcess()
 
             Cursor::gotoxy(1, 2);
             Cursor::rmLine(2);
-            std::cout << "Processs nuevos: " << NewProcessessRes << std::endl
+            std::cout << "Procesos nuevos: " << readyProcesses << std::endl
                       << "Tiempo transcurrido: " << NewProcesses::lapsedTime;
           
             std::cout.flush();
@@ -232,10 +234,8 @@ void NewProcesses::executeProcess()
                 this->current->calculate();
             fillFrame(term, *this->current, false, true);
             this->finished.push_back(*this->current);
-            if (!(this->finished.size() % MAX_JOB_AMOUNT)){
-                NewProcessessRes--;
-                NewProcessessTerm++;
-            }
+            if (readyProcesses)
+                readyProcesses--;
         }
         delete this->current; this->current = nullptr;
     }
@@ -267,12 +267,12 @@ bool NewProcesses::keyListener(long &cont)
 
 bool NewProcesses::inter(long &cont)
 {
-    std::vector<Process>::iterator it = this->pending.begin();
+    std::vector<Process>::iterator it = this->ready.begin();
     //unsigned int NewProcesses = it->getNewProcesses();
     if ((this->finished.size() % MAX_JOB_AMOUNT) != MAX_JOB_AMOUNT - 1){
         cont = 0;
-    //    for (it; it->getNewProcesses() == NewProcesses && it != this->pending.end(); it++);
-        this->pending.insert(it, *this->current);
+    //    for (it; it->getNewProcesses() == NewProcesses && it != this->ready.end(); it++);
+        this->ready.insert(it, *this->current);
         return true;
     }
     return false;
@@ -319,7 +319,7 @@ void NewProcesses::fillFrame(Frame& marco, Process& proc, bool actual, bool term
                     FIELD_WIDTH);
     }
     else if (term)
-        marco.print(proc.getResult(), BLANCO, false, FIELD_WIDTH);
+        marco.print(proc.getResult(), BLANCO, true, FIELD_WIDTH);
 }
 
 void NewProcesses::printFrames(Frame* pend, Frame* act, Frame* term, Frame* bloq)
