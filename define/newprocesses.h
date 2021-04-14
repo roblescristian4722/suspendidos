@@ -13,13 +13,12 @@
 #define MAX_READY_JOB_AMOUNT 4
 #define FRAME_Y 5
 #define MAX_SIZE_JOBS_FRAME 8
-#define MAX_BLOCKED_TIME 6
+#define MAX_BLOCKED_TIME 5
 
 class NewProcesses
 {
 private:
     unsigned long id;
-    std::vector<Process> newProc;
     std::vector<Process> ready;
     Process* current;
     std::vector<Process> finished;
@@ -70,7 +69,6 @@ private:
     void fillFinished(Frame &f, Process &p);
     void fillReady(Frame &f, Process &p);
     size_t calculateReady();
-    void getProcessReady();
 
 public :
     NewProcesses();
