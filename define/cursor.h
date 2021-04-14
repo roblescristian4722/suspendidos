@@ -84,6 +84,9 @@ public:
     // Si la cadena proporcionada no llega al borde del marco se incrementa
     // posX
     void fillContent(const std::string& msj, unsigned int n);
+    // Primero borra el contenido y luego se imprime algo
+    void update(const std::string &msj, char color = BLANCO,
+                bool newl = false, unsigned int fill = 0);
 };
 
 #endif // CURSOR_H

@@ -65,7 +65,7 @@ bool Process::setOp(const std::string& op)
 
 bool Process::setId(const std::string& id)
 {
-    std::regex validacion("[1-9][0-9]{0,4}");
+    std::regex validacion("[0-9][0-9]{0,4}");
     if (std::regex_match(id, validacion)){
         this->id = std::stoul(id);
         return true;

@@ -162,3 +162,10 @@ void Frame::fillContent(const std::string &msj, unsigned int n)
         this->xPos = xPos + (n - msj.size());
     gotoxy(this->xPos, this->yPos);
 }
+
+void Frame::update(const std::string &msj, char color,
+                   bool newl, unsigned int fill)
+{
+    rmContent();
+    print(msj, color, newl, fill);
+}

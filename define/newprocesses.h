@@ -13,7 +13,7 @@
 #define MAX_READY_JOB_AMOUNT 4
 #define FRAME_Y 5
 #define MAX_SIZE_JOBS_FRAME 8
-#define MAX_BLOCKED_TIME 5
+#define MAX_BLOCKED_TIME 6
 
 class NewProcesses
 {
@@ -61,14 +61,16 @@ private:
     // Escucha el teclado y ejecuta uno de los posibles casos con
     // kbhit: i, p, c, e
     unsigned short keyListener(long& cont);
+    // Ejecuta procesos hasta que todas las colas estén vacías
     bool processLeft();
-    unsigned short onMemory();
+    // Itera por la cola de bloqueados 
     void checkBlocked(Frame &f);
     void fillBlocked(Frame &f);
     void fillCurrent(Frame &f, Process &p);
     void fillFinished(Frame &f, Process &p);
     void fillReady(Frame &f, Process &p);
     size_t calculateReady();
+    void getProcessReady();
 
 public :
     NewProcesses();
