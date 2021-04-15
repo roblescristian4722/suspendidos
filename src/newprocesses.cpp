@@ -258,8 +258,8 @@ void NewProcesses::executeProcess()
             // Se genera proceso extra si ya hay 5 procesos bloqueados
             if (this->blocked.size() == MAX_READY_JOB_AMOUNT + 1 && !allBlocked){
                 cont = this->blocked.begin()->getBlockedTime();
-                this->current->setMaxTime(std::to_string(cont));
                 this->current = new Process;
+                this->current->setMaxTime(std::to_string(cont));
                 this->current->setId(std::to_string(0));
                 this->current->setRemTime(cont);
                 this->current->setLapsedTime(0);
@@ -269,15 +269,17 @@ void NewProcesses::executeProcess()
             printFrames(nullptr, nullptr, nullptr, &bloq);
             fillBlocked(bloq);
             crrnt.rmContent();
-            printFrames(nullptr, &crrnt);
-            fillCurrent(crrnt, *this->current);
+            if (!jump) {
+                printFrames(nullptr, &crrnt);
+                fillCurrent(crrnt, *this->current);
+            }
             Cursor::gotoxy(1, 2);
             Cursor::rmLine(2);
             std::cout << "Procesos nuevos: " << readyProcesses << std::endl
                       << "Tiempo transcurrido: " << NewProcesses::lapsedTime;
             std::cout.flush();
           
-            if (jump && !allBlocked)
+            if (jump)
                 break;
             std::this_thread::sleep_for(std::chrono::seconds(1));
             checkBlocked(pend);
@@ -286,7 +288,7 @@ void NewProcesses::executeProcess()
             this->current->setLapsedTime(this->current->getLapsedTime() + 1);
         }
         if (this->current != nullptr) {
-            if ((!jump || jump == 2) && this->current->getId()) {
+            if (this->current->getId()) {
                 if (jump != 2)
                     this->current->calculate();
                 fillFinished(fnshd, *this->current);
@@ -327,9 +329,10 @@ unsigned short NewProcesses::keyListener(long &cont)
 unsigned short NewProcesses::inter(long &cont)
 {
     if (this->blocked.size() <= MAX_READY_JOB_AMOUNT) {
-        Process aux = *this->current;
-        aux.setBlockedTime(MAX_BLOCKED_TIME);
-        this->blocked.push_back(aux);
+        this->current->setBlockedTime(MAX_BLOCKED_TIME);
+        this->blocked.push_back(*this->current);
+        delete this->current;
+        this->current = nullptr;
         return 1;
     }
     return 0;
