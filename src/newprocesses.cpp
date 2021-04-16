@@ -12,7 +12,7 @@ NewProcesses::NewProcesses()
 NewProcesses::NewProcesses(const NewProcesses& NewProcesses)
 {
     this->id = NewProcesses.id;
-    this->ready = NewProcesses.ready;
+    this->pending = NewProcesses.ready;
     this->finished = NewProcesses.finished;
     this->current = NewProcesses.current != nullptr
         ? new Process(NewProcesses.current->getId(),
@@ -25,7 +25,7 @@ NewProcesses::NewProcesses(const NewProcesses& NewProcesses)
 const NewProcesses& NewProcesses::operator=(const NewProcesses &NewProcesses)
 {
     this->id = NewProcesses.id;
-    this->ready = NewProcesses.ready;
+    this->pending = NewProcesses.ready;
     this->finished = NewProcesses.finished;
     this->current = NewProcesses.current != nullptr
         ? new Process(NewProcesses.current->getId(),
@@ -45,7 +45,7 @@ NewProcesses::~NewProcesses()
 }
 
 const std::vector<Process>& NewProcesses::getReady() const
-{ return this->ready; }
+{ return this->pending; }
 
 Process* NewProcesses::getCurrent() const
 { return this->current; }
@@ -82,9 +82,6 @@ void NewProcesses::init()
     executeProcess();
 }
 
-///////////////////////////////////////////////
-/*          CREACIÓN DE Process              */
-///////////////////////////////////////////////
 void NewProcesses::obtainProcess(const unsigned long& cont)
 {
     Process aux;
@@ -96,12 +93,9 @@ void NewProcesses::obtainProcess(const unsigned long& cont)
     aux.setOp(generateOp());
     // Captura de tiempo máximo
     aux.setMaxTime(std::to_string(generateTime()));
-    this->ready.push_back(aux);
+    this->pending.push_back(aux);
 }
 
-///////////////////////////////////////////////
-/*      GENERACIÓN DE DATOS ALEATORIOS       */
-///////////////////////////////////////////////
 std::string NewProcesses::generateOp()
 {   
     const short numOp = 5;
@@ -122,9 +116,6 @@ unsigned long NewProcesses::generateTime()
     return tmp;
 }
 
-///////////////////////////////////////////////
-/*           CAPTURA DE CAMPOS               */
-///////////////////////////////////////////////
 void NewProcesses::obtainField(std::string msj, std::string msjError,
                          Process& proc,
                          bool(Process::*metodo)(const std::string&,
@@ -174,39 +165,39 @@ void NewProcesses::obtainField(std::string msj, std::string msjError,
     }
 }
 
-///////////////////////////////////////////////
-/*           EJECUCIÓN DE PROCESOS           */
-///////////////////////////////////////////////
+size_t NewProcesses::onMemory()
+{
+    size_t tmp = this->current != nullptr ? 1 : 0;
+    if (tmp)
+        if (!this->current->getId())
+            tmp--;
+    return tmp + this->blocked.size() + this->ready.size();
+}
+
+void NewProcesses::pendingToReady()
+{
+    for (size_t i = 0; this->pending.size() && onMemory() <= MAX_READY_JOB_AMOUNT; ++i) {
+        this->ready.push_back(*this->pending.begin());
+        this->pending.erase(this->pending.begin());
+    }
+}
 
 bool NewProcesses::processLeft()
 {
-    if (!this->ready.size())
-        if (!this->blocked.size())
-            if (!this->ready.size())
-                if (this->current == nullptr)
-                    return false;
+    if (!this->blocked.size() && !this->pending.size() && !this->ready.size()
+    && this->current == nullptr)
+        return false;
     return true;
 }
 
 void NewProcesses::checkBlocked(Frame &f)
 {
     std::vector<Process>::iterator it = this->blocked.begin();
-    std::vector<Process>::iterator itReady;
-    size_t memory;
-    Process aux;
     while (it < this->blocked.end()) {
         if (it->getBlockedTime() == 1) {
-            if (it == this->blocked.begin()) {
-                itReady = this->ready.begin();
-                memory = calculateReady();
-                aux = *it;
-                this->blocked.erase(it);
-                while(memory--)
-                    itReady++;
-                this->ready.insert(itReady, aux);
-                fillReady(f, aux);
-            } else
-                it = this->blocked.begin();
+            this->ready.push_back(*it);
+            fillReady(f, *it);
+            this->blocked.erase(it);
         } else {
             it->setBlockedTime(it->getBlockedTime() - 1);
             it++;
@@ -214,57 +205,46 @@ void NewProcesses::checkBlocked(Frame &f)
     }
 }
 
-size_t NewProcesses::calculateReady()
-{
-    int tmp = this->current != nullptr ? 1 : 0;
-    if (tmp == 1)
-        if (!this->current->getId())
-            tmp = 0;
-    tmp += (int)this->blocked.size();
-    tmp -= MAX_READY_JOB_AMOUNT + 1;
-    tmp = tmp < 0 ? tmp * -1 : tmp;
-    return tmp;
-}
-
 void NewProcesses::executeProcess()
 {
-    unsigned int readyProcesses = (this->ready.size() < MAX_READY_JOB_AMOUNT)
-                        ? 0 : this->ready.size() - MAX_READY_JOB_AMOUNT - 1;
+    unsigned int readyProcesses = (this->pending.size() <= MAX_READY_JOB_AMOUNT)
+                        ? 0 : this->pending.size() - MAX_READY_JOB_AMOUNT - 1;
     long cont;
     unsigned short jump;
     bool allBlocked;
     Cursor::clrscr();
-    Frame pend(1, FRAME_Y, FIELD_WIDTH * 3 + 2, MAX_SIZE_JOBS_FRAME + 2, AMARILLO);
+    Frame rdy(1, FRAME_Y, FIELD_WIDTH * 3 + 2, MAX_SIZE_JOBS_FRAME + 2, AMARILLO);
     Frame crrnt(FIELD_WIDTH * 3 + 4, FRAME_Y, FIELD_WIDTH * 5, 6, VERDE);
     Frame fnshd(FIELD_WIDTH * 8 + 5, FRAME_Y, FIELD_WIDTH * 4, 25, CYAN);
     Frame bloq(1, FRAME_Y + MAX_SIZE_JOBS_FRAME + 2, FIELD_WIDTH * 2 + 2,
               MAX_SIZE_JOBS_FRAME + 3, MORADO);
 
-    printFrames(&pend, &crrnt, &fnshd, &bloq);
+    printFrames(&rdy, &crrnt, &fnshd, &bloq);
     while (processLeft()) {
         jump = false;
+        pendingToReady();
         this->current = new Process(this->ready.front());
         this->ready.erase(this->ready.begin());
 
-        pend.rmContent();
-        printFrames(&pend);
-        for (size_t i = 0; i < this->ready.size() && i < calculateReady(); ++i)
-            fillReady(pend, this->ready[i]);
+        rdy.rmContent();
+        printFrames(&rdy);
+        for (size_t i = 0; i < this->ready.size(); ++i)
+            fillReady(rdy, this->ready[i]);
         
         cont = this->current->getMaxTime() - this->current->getLapsedTime();
         allBlocked = false;
         while (cont--) {
             jump = keyListener(cont);
             // Se genera proceso extra si ya hay 5 procesos bloqueados
-            if (this->blocked.size() == MAX_READY_JOB_AMOUNT + 1 && !allBlocked){
+            if (dummyProcess() && !allBlocked){
                 cont = this->blocked.begin()->getBlockedTime();
                 this->current = new Process;
                 this->current->setMaxTime(std::to_string(cont));
                 this->current->setId(std::to_string(0));
                 this->current->setRemTime(cont);
-                this->current->setLapsedTime(0);
                 allBlocked = true;
                 cont--;
+                jump = 0;
             }
             printFrames(nullptr, nullptr, nullptr, &bloq);
             fillBlocked(bloq);
@@ -282,7 +262,7 @@ void NewProcesses::executeProcess()
             if (jump)
                 break;
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            checkBlocked(pend);
+            checkBlocked(rdy);
             ++NewProcesses::lapsedTime;
             this->current->setRemTime(cont);
             this->current->setLapsedTime(this->current->getLapsedTime() + 1);
@@ -300,9 +280,9 @@ void NewProcesses::executeProcess()
             this->current = nullptr;
         }
     }
-    pend.rmContent();
+    rdy.rmContent();
     crrnt.rmContent();
-    printFrames(&pend, &crrnt);
+    printFrames(&rdy, &crrnt);
 }
 
 unsigned short NewProcesses::keyListener(long &cont)
@@ -317,8 +297,11 @@ unsigned short NewProcesses::keyListener(long &cont)
             pause();
             return 0;
         case 'e': case 'E':
-            this->current->setResult("ERROR");
-            return 2;
+            if (this->current->getId()) {
+                this->current->setResult("ERROR");
+                return 2;
+            }
+            return 0;
         default:
             return 0;
         }
@@ -326,9 +309,19 @@ unsigned short NewProcesses::keyListener(long &cont)
     return 0;
 }
 
+bool NewProcesses::dummyProcess()
+{
+    if (this->blocked.size() == MAX_READY_JOB_AMOUNT + 1)
+        return true;
+    if (!this->pending.size() && !this->ready.size() && this->blocked.size()
+    && this->current == nullptr)
+        return true;
+    return false;
+}
+
 unsigned short NewProcesses::inter(long &cont)
 {
-    if (this->blocked.size() <= MAX_READY_JOB_AMOUNT) {
+    if (this->blocked.size() <= MAX_READY_JOB_AMOUNT && this->current->getId()){
         this->current->setBlockedTime(MAX_BLOCKED_TIME);
         this->blocked.push_back(*this->current);
         delete this->current;
@@ -355,9 +348,6 @@ void NewProcesses::pause()
     }
 }
 
-///////////////////////////////////////////////
-/*           IMPRESIÓN DE VENTANAS           */
-///////////////////////////////////////////////
 void NewProcesses::fillBlocked(Frame &f)
 {
     for (size_t i = 0; i < this->blocked.size(); ++i) {
@@ -392,11 +382,11 @@ void NewProcesses::fillReady(Frame &f, Process &p)
     f.print(std::to_string(p.getLapsedTime()), BLANCO, true, FIELD_WIDTH);
 }
 
-void NewProcesses::printFrames(Frame* pend, Frame* act, Frame* fnshd, Frame* bloq)
+void NewProcesses::printFrames(Frame* rdy, Frame* act, Frame* fnshd, Frame* bloq)
 {
-    if (pend) {
-        pend->print("Procesos pendientes:", BLANCO, true);
-        pend->print("ID      TME     TMT", BLANCO, true);
+    if (rdy) {
+        rdy->print("Procesos pendientes:", BLANCO, true);
+        rdy->print("ID      TME     TMT", BLANCO, true);
     }
     if (act) {
         act->update("Proceso en ejecucion:", BLANCO, true);

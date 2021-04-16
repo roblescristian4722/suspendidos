@@ -9,6 +9,13 @@ Process::Process()
 {
     this->lapsedTime = 0;
     this->blockedTime = 0;
+    this->arrivalTime = 0;
+    this->finishTime = 0;
+    this->maxTime = 0;
+    this->remTime = 0;
+    this->returnTime = 0;
+    this->serviceTime = 0;
+    this->op = "0";
 }
 
 Process::~Process() {}

@@ -19,6 +19,7 @@ class NewProcesses
 {
 private:
     unsigned long id;
+    std::vector<Process> pending;
     std::vector<Process> ready;
     Process* current;
     std::vector<Process> finished;
@@ -62,13 +63,26 @@ private:
     unsigned short keyListener(long& cont);
     // Ejecuta procesos hasta que todas las colas estén vacías
     bool processLeft();
-    // Itera por la cola de bloqueados 
+    // Itera por la cola de bloqueados reduciendo el contador de bloqueo de cada
+    // uno, si el contador de un proceso llega a cero se inserta en la cola de
+    // listos
     void checkBlocked(Frame &f);
+    // Se proveen datos para el frame de procesos bloqueados
     void fillBlocked(Frame &f);
+    // Se proveen datos para el frame del proceso actual
     void fillCurrent(Frame &f, Process &p);
+    // Se proveen datos para el frame de procesos terminados
     void fillFinished(Frame &f, Process &p);
+    // Se proveen datos para el frame de procesos listos
     void fillReady(Frame &f, Process &p);
-    size_t calculateReady();
+    // Retorna true si es necesario crear un proceso vacío y retorna false en
+    // caso contario
+    bool dummyProcess();
+    // Carga de uno a uno los procesos nuevos en memoria (máximo 5 al mismo
+    // tiempo) hasta que la cola de procesos nuevos esté vacía
+    void pendingToReady();
+    // Calcula los procesos en memoria
+    size_t onMemory();
 
 public :
     NewProcesses();
