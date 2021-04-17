@@ -1,76 +1,84 @@
-#include "../define/newprocesses.h"
+#include "../define/ProcessManager.h"
 
-unsigned long NewProcesses::lapsedTime = 0;
-std::map<std::string, bool> NewProcesses::idsUsed;
+std::map<std::string, bool> ProcessManager::idsUsed;
 
-NewProcesses::NewProcesses()
+ProcessManager::ProcessManager()
 {
     srand(time(NULL));
     this->current = nullptr;
+    this->lapsedTime = 0;
 }
 
-NewProcesses::NewProcesses(const NewProcesses& NewProcesses)
+ProcessManager::ProcessManager(const ProcessManager& ProcessManager)
 {
-    this->id = NewProcesses.id;
-    this->pending = NewProcesses.ready;
-    this->finished = NewProcesses.finished;
-    this->current = NewProcesses.current != nullptr
-        ? new Process(NewProcesses.current->getId(),
-                      NewProcesses.current->getName(),
-                      NewProcesses.current->getOp(),
-                      NewProcesses.current->getMaxTime())
+    this->id = ProcessManager.id;
+    this->pending = ProcessManager.ready;
+    this->finished = ProcessManager.finished;
+    this->current = ProcessManager.current != nullptr
+        ? new Process(ProcessManager.current->getId(),
+                      ProcessManager.current->getName(),
+                      ProcessManager.current->getOp(),
+                      ProcessManager.current->getMaxTime())
         : nullptr;
 }
 
-const NewProcesses& NewProcesses::operator=(const NewProcesses &NewProcesses)
+const ProcessManager& ProcessManager::operator=(const ProcessManager &ProcessManager)
 {
-    this->id = NewProcesses.id;
-    this->pending = NewProcesses.ready;
-    this->finished = NewProcesses.finished;
-    this->current = NewProcesses.current != nullptr
-        ? new Process(NewProcesses.current->getId(),
-                      NewProcesses.current->getName(),
-                      NewProcesses.current->getOp(),
-                      NewProcesses.current->getMaxTime())
+    this->id = ProcessManager.id;
+    this->pending = ProcessManager.ready;
+    this->finished = ProcessManager.finished;
+    this->current = ProcessManager.current != nullptr
+        ? new Process(ProcessManager.current->getId(),
+                      ProcessManager.current->getName(),
+                      ProcessManager.current->getOp(),
+                      ProcessManager.current->getMaxTime())
         : nullptr;
 
     return *this;
 }
 
-NewProcesses::~NewProcesses()
+ProcessManager::~ProcessManager()
 { 
     if (this->current)
         delete this->current;
     this->current = nullptr;
 }
 
-const std::vector<Process>& NewProcesses::getReady() const
+const std::vector<Process>& ProcessManager::getReady() const
 { return this->pending; }
 
-Process* NewProcesses::getCurrent() const
+Process* ProcessManager::getCurrent() const
 { return this->current; }
 
-const unsigned long& NewProcesses::getId() const
+const unsigned long& ProcessManager::getId() const
 { return this->id; }
 
-void NewProcesses::printFinished()
+void ProcessManager::printFinished()
 {
-    for (size_t i = 0; i < this->finished.size(); ++i) {
-        std::cout << "Process #" << i + 1 << std::endl
-                  << "ID: " << this->finished[i].getId() << std::endl
-                  << "Nombre: " << this->finished[i].getName() << std::endl
-                  << "Operación: " << this->finished[i].getOp()
-                  << "Resultado: " << this->finished[i].getResult()
+    for (size_t i = 0; i < this->finished.size(); ++i)
+        std::cout << "ID: " << this->finished[i].getId() << std::endl
+                  << "Operacion: " << this->finished[i].getOp() << std::endl
+                  << "Resultado: " << this->finished[i].getResult() << std::endl
+                  << "Tiempo maximo estimado: " << this->finished[i].getMaxTime()
                   << std::endl
-                  << "Tiempo: " << this->finished[i].getMaxTime()
+                  << "Tiempo de llegada: " << this->finished[i].getArrivalTime()
+                  << std::endl
+                  << "Tiempo de finalizacion: "
+                  << this->finished[i].getFinishTime() << std::endl
+                  << "Tiempo de espera: " << this->finished[i].getWaitingTime()
+                  << std::endl
+                  << "Tiempo de servicio: " << this->finished[i].getServiceTime()
+                  << std::endl
+                  << "Tiempo de retorno: " << this->finished[i].getReturnTime()
+                  << std::endl
+                  << "Tiempo de respuesta: " << this->finished[i].getResponseTime()
                   << std::endl << std::endl;
-    }
 }
 
-void NewProcesses::setId(const unsigned long &id)
+void ProcessManager::setId(const unsigned long &id)
 { this->id = id; }
 
-void NewProcesses::init()
+void ProcessManager::init()
 {
     unsigned long proc = 0;
     unsigned long cont = 0;
@@ -82,10 +90,10 @@ void NewProcesses::init()
     executeProcess();
 }
 
-void NewProcesses::obtainProcess(const unsigned long& cont)
+void ProcessManager::obtainProcess(const unsigned long& cont)
 {
     Process aux;
-    unsigned int NewProcesses = cont / MAX_READY_JOB_AMOUNT;
+    unsigned int ProcessManager = cont / MAX_READY_JOB_AMOUNT;
     
     // Captura de ID
     aux.setId(std::to_string(cont));
@@ -93,10 +101,11 @@ void NewProcesses::obtainProcess(const unsigned long& cont)
     aux.setOp(generateOp());
     // Captura de tiempo máximo
     aux.setMaxTime(std::to_string(generateTime()));
+    aux.setArrivalTime(this->lapsedTime);
     this->pending.push_back(aux);
 }
 
-std::string NewProcesses::generateOp()
+std::string ProcessManager::generateOp()
 {   
     const short numOp = 5;
     char op[numOp] = { '+', '-', '*', '/', '%' };
@@ -108,7 +117,7 @@ std::string NewProcesses::generateOp()
     return tmp;
 }
 
-unsigned long NewProcesses::generateTime()
+unsigned long ProcessManager::generateTime()
 {
     const short maxTmp = 10;
     unsigned long tmp = 1;
@@ -116,7 +125,7 @@ unsigned long NewProcesses::generateTime()
     return tmp;
 }
 
-void NewProcesses::obtainField(std::string msj, std::string msjError,
+void ProcessManager::obtainField(std::string msj, std::string msjError,
                          Process& proc,
                          bool(Process::*metodo)(const std::string&,
                                                 std::map<std::string,bool>*),
@@ -142,7 +151,7 @@ void NewProcesses::obtainField(std::string msj, std::string msjError,
     }
 }
 
-void NewProcesses::obtainField(std::string msj, std::string msjError,
+void ProcessManager::obtainField(std::string msj, std::string msjError,
                          Process& proc,
                          bool(Process::*metodo)(const std::string&))
 {
@@ -165,7 +174,7 @@ void NewProcesses::obtainField(std::string msj, std::string msjError,
     }
 }
 
-size_t NewProcesses::onMemory()
+size_t ProcessManager::onMemory()
 {
     size_t tmp = this->current != nullptr ? 1 : 0;
     if (tmp)
@@ -174,7 +183,7 @@ size_t NewProcesses::onMemory()
     return tmp + this->blocked.size() + this->ready.size();
 }
 
-void NewProcesses::pendingToReady()
+void ProcessManager::pendingToReady()
 {
     for (size_t i = 0; this->pending.size() && onMemory() <= MAX_READY_JOB_AMOUNT; ++i) {
         this->ready.push_back(*this->pending.begin());
@@ -182,7 +191,7 @@ void NewProcesses::pendingToReady()
     }
 }
 
-bool NewProcesses::processLeft()
+bool ProcessManager::processLeft()
 {
     if (!this->blocked.size() && !this->pending.size() && !this->ready.size()
     && this->current == nullptr)
@@ -190,7 +199,7 @@ bool NewProcesses::processLeft()
     return true;
 }
 
-void NewProcesses::checkBlocked(Frame &f)
+void ProcessManager::checkBlocked(Frame &f)
 {
     std::vector<Process>::iterator it = this->blocked.begin();
     while (it < this->blocked.end()) {
@@ -205,7 +214,7 @@ void NewProcesses::checkBlocked(Frame &f)
     }
 }
 
-void NewProcesses::executeProcess()
+void ProcessManager::executeProcess()
 {
     unsigned int readyProcesses = (this->pending.size() <= MAX_READY_JOB_AMOUNT)
                         ? 0 : this->pending.size() - MAX_READY_JOB_AMOUNT - 1;
@@ -231,7 +240,7 @@ void NewProcesses::executeProcess()
         for (size_t i = 0; i < this->ready.size(); ++i)
             fillReady(rdy, this->ready[i]);
         
-        cont = this->current->getMaxTime() - this->current->getLapsedTime();
+        cont = this->current->getMaxTime() - this->current->getServiceTime();
         allBlocked = false;
         while (cont--) {
             jump = keyListener(cont);
@@ -244,7 +253,7 @@ void NewProcesses::executeProcess()
                 this->current->setRemTime(cont);
                 allBlocked = true;
                 cont--;
-                jump = 0;
+                jump = CONTI;
             }
             printFrames(nullptr, nullptr, nullptr, &bloq);
             fillBlocked(bloq);
@@ -256,20 +265,27 @@ void NewProcesses::executeProcess()
             Cursor::gotoxy(1, 2);
             Cursor::rmLine(2);
             std::cout << "Procesos nuevos: " << readyProcesses << std::endl
-                      << "Tiempo transcurrido: " << NewProcesses::lapsedTime;
+                      << "Tiempo transcurrido: " << ProcessManager::lapsedTime;
             std::cout.flush();
-          
             if (jump)
                 break;
+            if (this->current->getResponseTime() == NOT_RESPOND_TIME)
+                this->current->setResponseTime(this->lapsedTime
+                - this->current->getArrivalTime());
             std::this_thread::sleep_for(std::chrono::seconds(1));
             checkBlocked(rdy);
-            ++NewProcesses::lapsedTime;
+            ++ProcessManager::lapsedTime;
             this->current->setRemTime(cont);
-            this->current->setLapsedTime(this->current->getLapsedTime() + 1);
+            this->current->setServiceTime(this->current->getServiceTime() + 1);
         }
-        if (this->current != nullptr) {
+        if (jump != INTER) {
             if (this->current->getId()) {
-                if (jump != 2)
+                this->current->setFinishTime(this->lapsedTime);
+                this->current->setReturnTime(this->current->getFinishTime()
+                - this->current->getArrivalTime());
+                this->current->setWaitingTime(this->current->getReturnTime()
+                - this->current->getServiceTime());
+                if (jump != ERROR)
                     this->current->calculate();
                 fillFinished(fnshd, *this->current);
                 this->finished.push_back(*this->current);
@@ -285,7 +301,7 @@ void NewProcesses::executeProcess()
     printFrames(&rdy, &crrnt);
 }
 
-unsigned short NewProcesses::keyListener(long &cont)
+unsigned short ProcessManager::keyListener(long &cont)
 {
     unsigned char input;
     if (kbhit()) {
@@ -295,21 +311,21 @@ unsigned short NewProcesses::keyListener(long &cont)
             return inter(cont);
         case 'p': case 'P':
             pause();
-            return 0;
+            return CONTI;
         case 'e': case 'E':
             if (this->current->getId()) {
                 this->current->setResult("ERROR");
-                return 2;
+                return ERROR;
             }
-            return 0;
+            return CONTI;
         default:
-            return 0;
+            return CONTI;
         }
     }
-    return 0;
+    return CONTI;
 }
 
-bool NewProcesses::dummyProcess()
+bool ProcessManager::dummyProcess()
 {
     if (this->blocked.size() == MAX_READY_JOB_AMOUNT + 1)
         return true;
@@ -319,19 +335,19 @@ bool NewProcesses::dummyProcess()
     return false;
 }
 
-unsigned short NewProcesses::inter(long &cont)
+unsigned short ProcessManager::inter(long &cont)
 {
     if (this->blocked.size() <= MAX_READY_JOB_AMOUNT && this->current->getId()){
         this->current->setBlockedTime(MAX_BLOCKED_TIME);
         this->blocked.push_back(*this->current);
         delete this->current;
         this->current = nullptr;
-        return 1;
+        return INTER;
     }
-    return 0;
+    return CONTI;
 }
 
-void NewProcesses::pause()
+void ProcessManager::pause()
 {
     unsigned char input;
     Cursor::gotoxy(1, 3);
@@ -348,7 +364,7 @@ void NewProcesses::pause()
     }
 }
 
-void NewProcesses::fillBlocked(Frame &f)
+void ProcessManager::fillBlocked(Frame &f)
 {
     for (size_t i = 0; i < this->blocked.size(); ++i) {
         f.print(std::to_string(this->blocked[i].getId()), BLANCO, false,
@@ -358,16 +374,16 @@ void NewProcesses::fillBlocked(Frame &f)
     }
 }
 
-void NewProcesses::fillCurrent(Frame &f, Process &p)
+void ProcessManager::fillCurrent(Frame &f, Process &p)
 {
     f.print(std::to_string(p.getId()), BLANCO, false, FIELD_WIDTH);
     f.print(p.getOp(), BLANCO, false, FIELD_WIDTH);
     f.print(std::to_string(p.getMaxTime()), BLANCO, false, FIELD_WIDTH);
     f.print(std::to_string(p.getRemTime()), BLANCO, false, FIELD_WIDTH);
-    f.print(std::to_string(p.getLapsedTime()), BLANCO, true, FIELD_WIDTH);
+    f.print(std::to_string(p.getServiceTime()), BLANCO, true, FIELD_WIDTH);
 }
 
-void NewProcesses::fillFinished(Frame &f, Process &p)
+void ProcessManager::fillFinished(Frame &f, Process &p)
 {
     f.print(std::to_string(p.getId()), BLANCO, false, FIELD_WIDTH);
     f.print(p.getOp(), BLANCO, false, FIELD_WIDTH);
@@ -375,17 +391,17 @@ void NewProcesses::fillFinished(Frame &f, Process &p)
     f.print(p.getResult(), BLANCO, true, FIELD_WIDTH);
 }
 
-void NewProcesses::fillReady(Frame &f, Process &p)
+void ProcessManager::fillReady(Frame &f, Process &p)
 {
     f.print(std::to_string(p.getId()), BLANCO, false, FIELD_WIDTH);
     f.print(std::to_string(p.getMaxTime()), BLANCO, false, FIELD_WIDTH);
-    f.print(std::to_string(p.getLapsedTime()), BLANCO, true, FIELD_WIDTH);
+    f.print(std::to_string(p.getServiceTime()), BLANCO, true, FIELD_WIDTH);
 }
 
-void NewProcesses::printFrames(Frame* rdy, Frame* act, Frame* fnshd, Frame* bloq)
+void ProcessManager::printFrames(Frame* rdy, Frame* act, Frame* fnshd, Frame* bloq)
 {
     if (rdy) {
-        rdy->print("Procesos pendientes:", BLANCO, true);
+        rdy->print("Procesos listos:", BLANCO, true);
         rdy->print("ID      TME     TMT", BLANCO, true);
     }
     if (act) {

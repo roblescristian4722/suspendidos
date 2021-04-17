@@ -1,5 +1,5 @@
-#ifndef NEW_PROCESSES_H
-#define NEW_PROCESSES_H
+#ifndef PROCESS_MANAGER_H
+#define PROCESS_MANAGER_H
 #include <iostream>
 #include <vector>
 #include <chrono>
@@ -14,8 +14,15 @@
 #define FRAME_Y 5
 #define MAX_SIZE_JOBS_FRAME 8
 #define MAX_BLOCKED_TIME 5
+#define NOT_RESPOND_TIME -1
 
-class NewProcesses
+enum ExecResult{
+    CONTI = 0,
+    INTER,
+    ERROR
+};
+
+class ProcessManager
 {
 private:
     unsigned long id;
@@ -25,7 +32,7 @@ private:
     std::vector<Process> finished;
     std::vector<Process> blocked;
     static std::map<std::string, bool> idsUsed;
-    static unsigned long lapsedTime;
+    unsigned long lapsedTime;
 
     // Establece el ID del Process, retorna true si el Process fue exitoso y 
     // retorna false en caso de que el ID sea incorrecto o ya esté en uso
@@ -54,7 +61,7 @@ private:
     // de uno en uno
     void executeProcess();
     // Interrumpe un Process y lo pone al final de la cola de procesos del
-    // NewProcesses actual
+    // ProcessManager actual
     unsigned short inter(long &cont);
     // Pausa un Process hasta que usuario presione "c" para continuar
     void pause();
@@ -85,11 +92,11 @@ private:
     size_t onMemory();
 
 public :
-    NewProcesses();
+    ProcessManager();
     // Constructor copy
-    NewProcesses(const NewProcesses& NewProcesses);
-    ~NewProcesses();
-    const NewProcesses& operator =(const NewProcesses& NewProcesses);
+    ProcessManager(const ProcessManager& ProcessManager);
+    ~ProcessManager();
+    const ProcessManager& operator =(const ProcessManager& ProcessManager);
 
     // Imprime en pantalla los procesos listos de ejecución en orden
     const std::vector<Process>& getReady() const;
@@ -97,12 +104,12 @@ public :
     void printFinished();
     // Retorna un puntero hacia el Process en ejecución
     Process* getCurrent() const;
-    // Retorna el ID del NewProcesses
+    // Retorna el ID del ProcessManager
     const unsigned long& getId() const;
-    // Establece el ID del NewProcesses
+    // Establece el ID del ProcessManager
     void setId(const unsigned long& id); 
     // Función que comienza la obtención de procesos
     void init();
 };
 
-#endif // NEW_PROCESSES_H
+#endif // PROCESS_MANAGER_H

@@ -3,19 +3,19 @@
 Process::Process(unsigned long id, std::string name, std::string op, 
                  unsigned short maxTime) : name(name), id(id),
                  maxTime(maxTime), op(op),
-                 remTime(maxTime), lapsedTime(0) {}
+                 remTime(maxTime), serviceTime(0) {}
 
 Process::Process()
 {
-    this->lapsedTime = 0;
+    this->serviceTime = 0;
     this->blockedTime = 0;
     this->arrivalTime = 0;
     this->finishTime = 0;
     this->maxTime = 0;
     this->remTime = 0;
     this->returnTime = 0;
-    this->serviceTime = 0;
     this->op = "0";
+    this->responseTime = -1;
 }
 
 Process::~Process() {}
@@ -30,8 +30,8 @@ const std::string& Process::getOp() const
 { return this->op; }
 const std::string& Process::getResult() const
 { return this->result; }
-const unsigned short& Process::getLapsedTime() const
-{ return this->lapsedTime; }
+const unsigned short& Process::getServiceTime() const
+{ return this->serviceTime; }
 const unsigned short& Process::getRemTime() const
 { return this->remTime; }
 const unsigned short &Process::getArrivalTime() const
@@ -42,10 +42,10 @@ const unsigned short &Process::getReturnTime() const
 { return this->returnTime; }
 const unsigned short &Process::getWaitingTime() const
 { return this->waitingTime; }
-const unsigned short &Process::getServiceTime() const
-{ return this->serviceTime; }
 const unsigned short &Process::getBlockedTime() const
 { return this->blockedTime; }
+const short &Process::getResponseTime() const
+{ return this->responseTime; }
 
 //Setters validados
 bool Process::setName(const std::string& name)
@@ -85,7 +85,7 @@ bool Process::setMaxTime(const std::string& maxTime)
     std::regex validacion("[0-9]{1,4}");
     if (std::regex_match(maxTime, validacion)){
         if (stoul(maxTime) > 0 && stoul(maxTime) <= 3600) {
-            this->lapsedTime = 0;
+            this->serviceTime = 0;
             this->maxTime = stoul(maxTime);
             this->remTime = stoul(maxTime);
             return true;
@@ -94,8 +94,8 @@ bool Process::setMaxTime(const std::string& maxTime)
     return false;
 }
 
-void Process::setLapsedTime(const unsigned short& lapsedTime)
-{ this->lapsedTime = lapsedTime; }
+void Process::setServiceTime(const unsigned short &serviceTime)
+{ this->serviceTime = serviceTime; }
 void Process::setRemTime(const unsigned short& remTime)
 { this->remTime = remTime; }
 void Process::setResult(const std::string &result)
@@ -108,10 +108,10 @@ void Process::setReturnTime(const unsigned short &returnTime)
 { this->returnTime = returnTime; }
 void Process::setWaitingTime(const unsigned short &waitingTime)
 { this->waitingTime = waitingTime; }
-void Process::setServiceTime(const unsigned short &serviceTime)
-{ this->serviceTime = serviceTime; }
 void Process::setBlockedTime(const unsigned short &blockedTime)
 { this->blockedTime = blockedTime; }
+void Process::setResponseTime(const unsigned short &responseTime)
+{ this->responseTime = responseTime; }
 
 void Process::calculate()
 {

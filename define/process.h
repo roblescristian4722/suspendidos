@@ -13,13 +13,13 @@ private:
     unsigned long id;
     unsigned short maxTime;
     unsigned short remTime;
-    unsigned short lapsedTime;
+    unsigned short serviceTime;
     unsigned short arrivalTime;
     unsigned short finishTime;
     unsigned short returnTime;
     unsigned short waitingTime;
-    unsigned short serviceTime;
     unsigned short blockedTime;
+    short responseTime;
 
 public:
     Process();
@@ -39,8 +39,8 @@ public:
     const std::string& getResult() const;
     // Obtiene el tiempo restante
     const unsigned short& getRemTime() const;
-    // Obtiene el tiepo transcurrido
-    const unsigned short& getLapsedTime() const;
+    // Obtiene el tiepo transcurrido o de servicio
+    const unsigned short& getServiceTime() const;
     // Obtiene el tiempo de llegada
     const unsigned short &getArrivalTime() const;
     // Obtiene el tiempo de finalización
@@ -49,10 +49,10 @@ public:
     const unsigned short& getReturnTime() const;
     // Obtiene el tiempo de espera
     const unsigned short& getWaitingTime() const;
-    // Obtiene el tiempo de servicio
-    const unsigned short& getServiceTime() const;
     // Obtiene el tiempo de bloqueo
     const unsigned short &getBlockedTime() const;
+    // Obtiene el tiempo de respuesta
+    const short &getResponseTime() const;
 
     // Genera el resultado de la operación
     void calculate();
@@ -62,7 +62,7 @@ public:
     // Asigna el tiempo restante
     void setRemTime(const unsigned short& tiempoRes);
     // Asigna el tiepo transcurrido
-    void setLapsedTime(const unsigned short& tiempoTrans);
+    void setServiceTime(const unsigned short &serviceTime);
     // Asigna el tiempo de llegada
     void setArrivalTime(const unsigned short &arrivalTime);
     // Asigna el tiempo de finalización
@@ -71,10 +71,10 @@ public:
     void setReturnTime(const unsigned short &returnTime);
     // Asigna el tiempo de espera
     void setWaitingTime(const unsigned short &waitingTime);
-    // Asigna el tiempo de servicio
-    void setServiceTime(const unsigned short& serviceTime);
     // Asigna el tiempo de bloqueo
     void setBlockedTime(const unsigned short &blockedTime);
+    // Asigna el tiempo de respuesta
+    void setResponseTime(const unsigned short &responseTime);
     // Asigna el nombre del programador del Process
     bool setName(const std::string& nombre);
     // Asigna el tipo de operacion a realizar en el Process
