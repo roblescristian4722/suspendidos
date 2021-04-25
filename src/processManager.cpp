@@ -7,6 +7,14 @@ ProcessManager::ProcessManager()
     srand(time(NULL));
     this->current = nullptr;
     this->lapsedTime = 0;
+    this->states[&this->finished] = "Finalizado";
+    this->states[&this->ready] = "Listo";
+    this->states[&this->blocked] = "Bloqueado";
+    this->states[&this->pending] = "Nuevo";
+    this->stateColors[&this->finished] = CYAN;
+    this->stateColors[&this->ready] = VERDE;
+    this->stateColors[&this->blocked] = ROJO;
+    this->stateColors[&this->pending] = AMARILLO;
 }
 
 ProcessManager::ProcessManager(const ProcessManager& ProcessManager)
@@ -54,25 +62,60 @@ const unsigned long& ProcessManager::getId() const
 { return this->id; }
 
 void ProcessManager::printFinished()
+{ printBCP(&this->finished); }
+
+void ProcessManager::printBCP(const bool& finished)
 {
-    for (size_t i = 0; i < this->finished.size(); ++i)
-        std::cout << "ID: " << this->finished[i].getId() << std::endl
-                  << "Operacion: " << this->finished[i].getOp() << std::endl
-                  << "Resultado: " << this->finished[i].getResult() << std::endl
-                  << "Tiempo maximo estimado: " << this->finished[i].getMaxTime()
-                  << std::endl
-                  << "Tiempo de llegada: " << this->finished[i].getArrivalTime()
-                  << std::endl
-                  << "Tiempo de finalizacion: "
-                  << this->finished[i].getFinishTime() << std::endl
-                  << "Tiempo de espera: " << this->finished[i].getWaitingTime()
-                  << std::endl
-                  << "Tiempo de servicio: " << this->finished[i].getServiceTime()
-                  << std::endl
-                  << "Tiempo de retorno: " << this->finished[i].getReturnTime()
-                  << std::endl
-                  << "Tiempo de respuesta: " << this->finished[i].getResponseTime()
-                  << std::endl << std::endl;
+    std::vector<Process>* queue;
+    std::map<std::vector<Process>*, std::string>::iterator it;
+    for (it = this->states.begin(); it != this->states.end(); it++) {
+        queue = it->first;
+        if (finished)
+            queue = &this->finished;
+        for (size_t i = 0; i < queue->size(); ++i)
+            std::cout << "ID: " << (*queue)[i].getId() << std::endl
+                    << "Estado: " << Cursor::colorText(this->stateColors[queue],
+                        this->states[queue]) << std::endl
+                    << "Operacion: " << (*queue)[i].getOp() << std::endl
+                    << "Resultado: " << (*queue)[i].getResult() << std::endl
+                    << "Tiempo maximo estimado: " << (*queue)[i].getMaxTime()
+                    << std::endl
+                    << "Tiempo de llegada: " << (*queue)[i].getArrivalTime()
+                    << std::endl
+                    << "Tiempo de finalizacion: "
+                    << (*queue)[i].getFinishTime() << std::endl
+                    << "Tiempo de espera: " << (*queue)[i].getWaitingTime()
+                    << std::endl
+                    << "Tiempo de servicio: " << (*queue)[i].getServiceTime()
+                    << std::endl
+                    << "Tiempo de retorno: " << (*queue)[i].getReturnTime()
+                    << std::endl
+                    << "Tiempo de respuesta: " << (*queue)[i].getResponseTime()
+                    << std::endl << std::endl;
+        if (finished)
+            break;
+    }
+    if (this->current != nullptr)
+        if (this->current->getId())
+            std::cout << "ID: " << this->current->getId() << std::endl
+                    << "Estado:" << Cursor::colorText(MORADO, "En ejecucion")
+                    << std::endl
+                    << "Operacion: " << this->current->getOp() << std::endl
+                    << "Resultado: " << this->current->getResult() << std::endl
+                    << "Tiempo maximo estimado: " << this->current->getMaxTime()
+                    << std::endl
+                    << "Tiempo de llegada: " << this->current->getArrivalTime()
+                    << std::endl
+                    << "Tiempo de finalizacion: "
+                    << this->current->getFinishTime() << std::endl
+                    << "Tiempo de espera: " << this->current->getWaitingTime()
+                    << std::endl
+                    << "Tiempo de servicio: " << this->current->getServiceTime()
+                    << std::endl
+                    << "Tiempo de retorno: " << this->current->getReturnTime()
+                    << std::endl
+                    << "Tiempo de respuesta: " << this->current->getResponseTime()
+                    << std::endl << std::endl;
 }
 
 void ProcessManager::setId(const unsigned long &id)
@@ -92,9 +135,7 @@ void ProcessManager::init()
 
 void ProcessManager::obtainProcess(const unsigned long& cont)
 {
-    Process aux;
-    unsigned int ProcessManager = cont / MAX_READY_JOB_AMOUNT;
-    
+    Process aux;    
     // Captura de ID
     aux.setId(std::to_string(cont));
     // Captura de operación
@@ -216,8 +257,7 @@ void ProcessManager::checkBlocked(Frame &f)
 
 void ProcessManager::executeProcess()
 {
-    unsigned int readyProcesses = (this->pending.size() <= MAX_READY_JOB_AMOUNT)
-                        ? 0 : this->pending.size() - MAX_READY_JOB_AMOUNT - 1;
+    std::string auxStr = "";
     long cont;
     unsigned short jump;
     bool allBlocked;
@@ -262,14 +302,12 @@ void ProcessManager::executeProcess()
                 printFrames(nullptr, &crrnt);
                 fillCurrent(crrnt, *this->current);
             }
-            Cursor::gotoxy(1, 2);
-            Cursor::rmLine(2);
-            std::cout << "Procesos nuevos: " << readyProcesses << std::endl
-                      << "Tiempo transcurrido: " << ProcessManager::lapsedTime;
-            std::cout.flush();
+            auxStr = "Procesos nuevos: " + std::to_string(this->pending.size())
+            + "\nTiempo transcurrido: " + std::to_string(ProcessManager::lapsedTime);
+            Cursor::rmPrint(1, 2, auxStr);
             if (jump)
                 break;
-            if (this->current->getResponseTime() == NOT_RESPOND_TIME)
+            if (this->current->getResponseTime() == NO_RESPOND_TIME)
                 this->current->setResponseTime(this->lapsedTime
                 - this->current->getArrivalTime());
             std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -285,14 +323,12 @@ void ProcessManager::executeProcess()
                 - this->current->getArrivalTime());
                 this->current->setWaitingTime(this->current->getReturnTime()
                 - this->current->getServiceTime());
-                if (this->current->getResponseTime() == NOT_RESPOND_TIME)
+                if (this->current->getResponseTime() == NO_RESPOND_TIME)
                     this->current->setResponseTime(0);
                 if (jump != ERROR)
                     this->current->calculate();
                 fillFinished(fnshd, *this->current);
                 this->finished.push_back(*this->current);
-                if (readyProcesses)
-                    readyProcesses--;
             }
             delete this->current;
             this->current = nullptr;
@@ -320,6 +356,12 @@ unsigned short ProcessManager::keyListener(long &cont)
                 return ERROR;
             }
             return CONTI;
+        case 'n': case 'N':
+            obtainProcess(this->pending.back().getId() + 1);
+        break;
+        case 'b': case 'B':
+            pause(true);
+        break;
         default:
             return CONTI;
         }
@@ -349,17 +391,27 @@ unsigned short ProcessManager::inter(long &cont)
     return CONTI;
 }
 
-void ProcessManager::pause()
+void ProcessManager::pause(const bool& bcp)
 {
     unsigned char input;
-    Cursor::gotoxy(1, 3);
-    std::cout << Cursor::colorText(MORADO,
-                        "Ejecucion pausada - Presione \"c\" para continuar");
+    if (bcp) {
+        Cursor::clrscr();
+        std::cout << Cursor::colorText(MORADO,
+                        "Ejecucion pausada - Presione \"c\" para continuar")
+                  << std::endl;
+        printBCP();
+    } else {
+        Cursor::gotoxy(1, 3);
+        std::cout << Cursor::colorText(MORADO,
+                            "Ejecucion pausada - Presione \"c\" para continuar");
+    }    
     while (1) {
         if (kbhit()) {
             input = getch();
             if (input == 'c' || input == 'C') {
                 Cursor::rmLine();
+                if (bcp)
+                    Cursor::clrscr();
                 break;
             }
         }

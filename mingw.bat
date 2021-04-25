@@ -1,5 +1,5 @@
 @echo off
 
 mkdir build
-g++ src\* -B define -o build\process.exe
+g++ src/*.cpp -B define -o build\process.exe
 cd build

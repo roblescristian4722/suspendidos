@@ -42,7 +42,10 @@ struct Cursor
     // Dibuja una línea vertical en la terminal
     static void drawYLine(int x, int y, int h, char color = BLANCO,
                    bool foreground = false, std::string  caracter = "*");
-
+    // Borra una cantidad rm de líneas antes de imprimir un mensaje en las
+    // coordenadas x, y
+    static void rmPrint(const int &x, const int &y, const std::string &msg,
+                        const int &rm = 1, const char &color = BLANCO);
 };
 
 class Frame: public Cursor

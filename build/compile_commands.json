@@ -1,0 +1,22 @@
+[
+{
+  "directory": "C:/Users/krist/Documents/procesamiento_por_lotes/build",
+  "command": "C:\\PROGRA~1\\MINGW-~1\\X86_64~1.0-P\\mingw64\\bin\\X86_64~2.EXE  @CMakeFiles/procesamientoPorLotes.dir/includes_CXX.rsp -g -std=gnu++11 -o CMakeFiles\\procesamientoPorLotes.dir\\src\\main.cpp.obj -c C:\\Users\\krist\\Documents\\procesamiento_por_lotes\\src\\main.cpp",
+  "file": "C:/Users/krist/Documents/procesamiento_por_lotes/src/main.cpp"
+},
+{
+  "directory": "C:/Users/krist/Documents/procesamiento_por_lotes/build",
+  "command": "C:\\PROGRA~1\\MINGW-~1\\X86_64~1.0-P\\mingw64\\bin\\X86_64~2.EXE  @CMakeFiles/procesamientoPorLotes.dir/includes_CXX.rsp -g -std=gnu++11 -o CMakeFiles\\procesamientoPorLotes.dir\\src\\cursor.cpp.obj -c C:\\Users\\krist\\Documents\\procesamiento_por_lotes\\src\\cursor.cpp",
+  "file": "C:/Users/krist/Documents/procesamiento_por_lotes/src/cursor.cpp"
+},
+{
+  "directory": "C:/Users/krist/Documents/procesamiento_por_lotes/build",
+  "command": "C:\\PROGRA~1\\MINGW-~1\\X86_64~1.0-P\\mingw64\\bin\\X86_64~2.EXE  @CMakeFiles/procesamientoPorLotes.dir/includes_CXX.rsp -g -std=gnu++11 -o CMakeFiles\\procesamientoPorLotes.dir\\src\\process.cpp.obj -c C:\\Users\\krist\\Documents\\procesamiento_por_lotes\\src\\process.cpp",
+  "file": "C:/Users/krist/Documents/procesamiento_por_lotes/src/process.cpp"
+},
+{
+  "directory": "C:/Users/krist/Documents/procesamiento_por_lotes/build",
+  "command": "C:\\PROGRA~1\\MINGW-~1\\X86_64~1.0-P\\mingw64\\bin\\X86_64~2.EXE  @CMakeFiles/procesamientoPorLotes.dir/includes_CXX.rsp -g -std=gnu++11 -o CMakeFiles\\procesamientoPorLotes.dir\\src\\processManager.cpp.obj -c C:\\Users\\krist\\Documents\\procesamiento_por_lotes\\src\\processManager.cpp",
+  "file": "C:/Users/krist/Documents/procesamiento_por_lotes/src/processManager.cpp"
+}
+]

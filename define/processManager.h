@@ -14,7 +14,7 @@
 #define FRAME_Y 5
 #define MAX_SIZE_JOBS_FRAME 8
 #define MAX_BLOCKED_TIME 5
-#define NOT_RESPOND_TIME -1
+#define NO_RESPOND_TIME -1
 
 enum ExecResult{
     CONTI = 0,
@@ -31,6 +31,8 @@ private:
     Process* current;
     std::vector<Process> finished;
     std::vector<Process> blocked;
+    std::map<std::vector<Process>*, std::string> states;
+    std::map<std::vector<Process>*, char> stateColors;
     static std::map<std::string, bool> idsUsed;
     unsigned long lapsedTime;
 
@@ -64,9 +66,9 @@ private:
     // ProcessManager actual
     unsigned short inter(long &cont);
     // Pausa un Process hasta que usuario presione "c" para continuar
-    void pause();
+    void pause(const bool &bcp = false);
     // Escucha el teclado y ejecuta uno de los posibles casos con
-    // kbhit: i, p, c, e
+    // kbhit: i, p, c, e, b
     unsigned short keyListener(long& cont);
     // Se proveen datos para el frame de procesos bloqueados
     void fillBlocked(Frame &f);
@@ -90,6 +92,7 @@ private:
     // uno, si el contador de un proceso llega a cero se inserta en la cola de
     // listos
     void checkBlocked(Frame &f);
+    void printBCP(const bool& finished = false);
 
 public :
     ProcessManager();
