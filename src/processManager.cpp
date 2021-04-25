@@ -83,7 +83,7 @@ void ProcessManager::init()
     unsigned long proc = 0;
     unsigned long cont = 0;
     
-    std::cout << Cursor::colorText(VERDE, "Processs a capturar: ");
+    std::cout << Cursor::colorText(VERDE, "Procesos a capturar: ");
     std::cin >> proc;
     while (proc--)
         obtainProcess(++cont);
@@ -101,7 +101,6 @@ void ProcessManager::obtainProcess(const unsigned long& cont)
     aux.setOp(generateOp());
     // Captura de tiempo máximo
     aux.setMaxTime(std::to_string(generateTime()));
-    aux.setArrivalTime(this->lapsedTime);
     this->pending.push_back(aux);
 }
 
@@ -187,6 +186,7 @@ void ProcessManager::pendingToReady()
 {
     for (size_t i = 0; this->pending.size() && onMemory() <= MAX_READY_JOB_AMOUNT; ++i) {
         this->ready.push_back(*this->pending.begin());
+        this->ready.back().setArrivalTime(this->lapsedTime);
         this->pending.erase(this->pending.begin());
     }
 }
@@ -285,6 +285,8 @@ void ProcessManager::executeProcess()
                 - this->current->getArrivalTime());
                 this->current->setWaitingTime(this->current->getReturnTime()
                 - this->current->getServiceTime());
+                if (this->current->getResponseTime() == NOT_RESPOND_TIME)
+                    this->current->setResponseTime(0);
                 if (jump != ERROR)
                     this->current->calculate();
                 fillFinished(fnshd, *this->current);

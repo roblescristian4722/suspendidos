@@ -68,12 +68,6 @@ private:
     // Escucha el teclado y ejecuta uno de los posibles casos con
     // kbhit: i, p, c, e
     unsigned short keyListener(long& cont);
-    // Ejecuta procesos hasta que todas las colas estén vacías
-    bool processLeft();
-    // Itera por la cola de bloqueados reduciendo el contador de bloqueo de cada
-    // uno, si el contador de un proceso llega a cero se inserta en la cola de
-    // listos
-    void checkBlocked(Frame &f);
     // Se proveen datos para el frame de procesos bloqueados
     void fillBlocked(Frame &f);
     // Se proveen datos para el frame del proceso actual
@@ -90,6 +84,12 @@ private:
     void pendingToReady();
     // Calcula los procesos en memoria
     size_t onMemory();
+    // Ejecuta procesos hasta que todas las colas estén vacías
+    bool processLeft();
+    // Itera por la cola de bloqueados reduciendo el contador de bloqueo de cada
+    // uno, si el contador de un proceso llega a cero se inserta en la cola de
+    // listos
+    void checkBlocked(Frame &f);
 
 public :
     ProcessManager();
