@@ -6,9 +6,8 @@ Frame::Frame(int x, int y, int w, int h, char color, bool foreground,
                                     contentColor(BLANCO), simbol(simbol),
                                     color(color)
 {
-    drawFrame(x, y, w, h, color, foreground, simbol);
-    this->xPos = x + 1;
-    this->yPos = y + 1;
+    setFrame(x, y, w, h, color, foreground, simbol);
+    drawFrame();
 }
 
 Frame::~Frame(){}
@@ -31,7 +30,6 @@ void Frame::setFrame(int x, int y, int w, int h, char color, bool foreground,
     this->foreground = foreground;
     this->simbol = simbol;
     this->color = color;
-    drawFrame(x, y, w, h, color, foreground, simbol);
     this->xPos = x + 1;
     this->yPos = y + 1;
 }
@@ -104,14 +102,19 @@ void Cursor::drawYLine(int x, int y, int h, char color, bool foreground,
     std::cout.flush();
 }
 
-void Frame::drawFrame(int x, int y, int w, int h, char color, bool foreground,
-               std::string caracter)
+void Frame::drawFrame()
 {
-    drawXLine(x, y, w, color, foreground, caracter);
-    drawYLine(x, y, h, color, foreground, caracter);
-    drawYLine(x + w - 1, y, h, color, foreground, caracter);
-    drawXLine(x, y + h - 1, w, color, foreground, caracter);
-    gotoxy(x + 1, y + 1);
+    this->xPos = this->xFrame + 1;
+    this->yPos = this->yFrame + 1;
+    drawXLine(this->xFrame, this->yFrame, this->widthFrame, this->color,
+              this->foreground, this->simbol);
+    drawYLine(this->xFrame, this->yFrame, this->heightFrame, this->color,
+              this->foreground, this->simbol);
+    drawYLine(this->xFrame + this->widthFrame - 1, this->yFrame, this->heightFrame,
+              this->color, this->foreground, this->simbol);
+    drawXLine(this->xFrame, this->yFrame + this->heightFrame - 1, this->widthFrame,
+              this->color, this->foreground, this->simbol);
+    gotoxy(this->xPos, this->xPos);
 }
 
 void Frame::print(const std::string& msj, char color, bool newl,

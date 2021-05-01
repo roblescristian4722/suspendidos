@@ -19,7 +19,8 @@
 enum ExecResult{
     CONTI = 0,
     INTER,
-    ERROR
+    ERROR,
+    BCP
 };
 
 class ProcessManager
@@ -93,13 +94,13 @@ private:
     // listos
     void checkBlocked(Frame &f);
     void printBCP(const bool& finished = false);
+    void reDrawReady(Frame &f);
+    void reDrawFinished(Frame &f);
+    bool printBCPData(std::vector<Process> *v);
 
 public :
     ProcessManager();
-    // Constructor copy
-    ProcessManager(const ProcessManager& ProcessManager);
     ~ProcessManager();
-    const ProcessManager& operator =(const ProcessManager& ProcessManager);
 
     // Imprime en pantalla los procesos listos de ejecución en orden
     const std::vector<Process>& getReady() const;

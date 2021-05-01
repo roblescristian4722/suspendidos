@@ -17,34 +17,6 @@ ProcessManager::ProcessManager()
     this->stateColors[&this->pending] = AMARILLO;
 }
 
-ProcessManager::ProcessManager(const ProcessManager& ProcessManager)
-{
-    this->id = ProcessManager.id;
-    this->pending = ProcessManager.ready;
-    this->finished = ProcessManager.finished;
-    this->current = ProcessManager.current != nullptr
-        ? new Process(ProcessManager.current->getId(),
-                      ProcessManager.current->getName(),
-                      ProcessManager.current->getOp(),
-                      ProcessManager.current->getMaxTime())
-        : nullptr;
-}
-
-const ProcessManager& ProcessManager::operator=(const ProcessManager &ProcessManager)
-{
-    this->id = ProcessManager.id;
-    this->pending = ProcessManager.ready;
-    this->finished = ProcessManager.finished;
-    this->current = ProcessManager.current != nullptr
-        ? new Process(ProcessManager.current->getId(),
-                      ProcessManager.current->getName(),
-                      ProcessManager.current->getOp(),
-                      ProcessManager.current->getMaxTime())
-        : nullptr;
-
-    return *this;
-}
-
 ProcessManager::~ProcessManager()
 { 
     if (this->current)
@@ -64,6 +36,13 @@ const unsigned long& ProcessManager::getId() const
 void ProcessManager::printFinished()
 { printBCP(&this->finished); }
 
+bool ProcessManager::printBCPData(std::vector<Process> *v)
+{
+    if (this->states[v] == "Finalizado")
+        return true;
+    return false;
+}
+
 void ProcessManager::printBCP(const bool& finished)
 {
     std::vector<Process>* queue;
@@ -72,28 +51,31 @@ void ProcessManager::printBCP(const bool& finished)
         queue = it->first;
         if (finished)
             queue = &this->finished;
-        for (size_t i = 0; i < queue->size(); ++i)
+        for (size_t i = 0; i < queue->size(); ++i) {
             std::cout << "ID: " << (*queue)[i].getId() << std::endl
                     << "Estado: " << Cursor::colorText(this->stateColors[queue],
                         this->states[queue]) << std::endl
                     << "Operacion: " << (*queue)[i].getOp() << std::endl
-                    << "Resultado: " << (*queue)[i].getResult() << std::endl
                     << "Tiempo maximo estimado: " << (*queue)[i].getMaxTime()
                     << std::endl
                     << "Tiempo de llegada: " << (*queue)[i].getArrivalTime()
                     << std::endl
-                    << "Tiempo de finalizacion: "
-                    << (*queue)[i].getFinishTime() << std::endl
                     << "Tiempo de espera: " << (*queue)[i].getWaitingTime()
                     << std::endl
                     << "Tiempo de servicio: " << (*queue)[i].getServiceTime()
-                    << std::endl
-                    << "Tiempo de retorno: " << (*queue)[i].getReturnTime()
-                    << std::endl
-                    << "Tiempo de respuesta: " << (*queue)[i].getResponseTime()
-                    << std::endl << std::endl;
-        if (finished)
-            break;
+                    << std::endl;
+            if (this->states[queue] == "Finalizado")
+                std::cout << "Resultado: " << (*queue)[i].getResult() << std::endl
+                        << "Tiempo de finalizacion: " << (*queue)[i].getFinishTime()
+                        << std::endl
+                        << "Tiempo de retorno: " << (*queue)[i].getReturnTime()
+                        << std::endl
+                        << "Tiempo de respuesta: " << (*queue)[i].getResponseTime()
+                        << std::endl;
+            std::cout << std::endl;
+            if (finished)
+                break;
+        }
     }
     if (this->current != nullptr)
         if (this->current->getId())
@@ -101,18 +83,15 @@ void ProcessManager::printBCP(const bool& finished)
                     << "Estado:" << Cursor::colorText(MORADO, "En ejecucion")
                     << std::endl
                     << "Operacion: " << this->current->getOp() << std::endl
-                    << "Resultado: " << this->current->getResult() << std::endl
                     << "Tiempo maximo estimado: " << this->current->getMaxTime()
+                    << std::endl
+                    << "Tiempo restante:" << this->current->getRemTime()
                     << std::endl
                     << "Tiempo de llegada: " << this->current->getArrivalTime()
                     << std::endl
-                    << "Tiempo de finalizacion: "
-                    << this->current->getFinishTime() << std::endl
                     << "Tiempo de espera: " << this->current->getWaitingTime()
                     << std::endl
                     << "Tiempo de servicio: " << this->current->getServiceTime()
-                    << std::endl
-                    << "Tiempo de retorno: " << this->current->getReturnTime()
                     << std::endl
                     << "Tiempo de respuesta: " << this->current->getResponseTime()
                     << std::endl << std::endl;
@@ -283,7 +262,16 @@ void ProcessManager::executeProcess()
         cont = this->current->getMaxTime() - this->current->getServiceTime();
         allBlocked = false;
         while (cont--) {
+            if (this->current->getResponseTime() == NO_RESPOND_TIME)
+                this->current->setResponseTime(this->lapsedTime
+                - this->current->getArrivalTime());
             jump = keyListener(cont);
+            if (jump == BCP) {
+                crrnt.drawFrame();
+                bloq.drawFrame();
+                reDrawReady(rdy);
+                reDrawFinished(fnshd);
+            }
             // Se genera proceso extra si ya hay 5 procesos bloqueados
             if (dummyProcess() && !allBlocked){
                 cont = this->blocked.begin()->getBlockedTime();
@@ -298,18 +286,15 @@ void ProcessManager::executeProcess()
             printFrames(nullptr, nullptr, nullptr, &bloq);
             fillBlocked(bloq);
             crrnt.rmContent();
-            if (!jump) {
+            if (jump == CONTI || jump == BCP) {
                 printFrames(nullptr, &crrnt);
                 fillCurrent(crrnt, *this->current);
             }
             auxStr = "Procesos nuevos: " + std::to_string(this->pending.size())
             + "\nTiempo transcurrido: " + std::to_string(ProcessManager::lapsedTime);
             Cursor::rmPrint(1, 2, auxStr);
-            if (jump)
+            if (jump != CONTI && jump != BCP)
                 break;
-            if (this->current->getResponseTime() == NO_RESPOND_TIME)
-                this->current->setResponseTime(this->lapsedTime
-                - this->current->getArrivalTime());
             std::this_thread::sleep_for(std::chrono::seconds(1));
             checkBlocked(rdy);
             ++ProcessManager::lapsedTime;
@@ -346,24 +331,24 @@ unsigned short ProcessManager::keyListener(long &cont)
         input = getch();
         switch (input) {
         case 'i': case 'I':
-            return inter(cont);
+        return inter(cont);
         case 'p': case 'P':
             pause();
-            return CONTI;
+        return CONTI;
         case 'e': case 'E':
             if (this->current->getId()) {
                 this->current->setResult("ERROR");
                 return ERROR;
             }
-            return CONTI;
+        return CONTI;
         case 'n': case 'N':
             obtainProcess(this->pending.back().getId() + 1);
         break;
         case 'b': case 'B':
             pause(true);
-        break;
+        return BCP;
         default:
-            return CONTI;
+        return CONTI;
         }
     }
     return CONTI;
@@ -426,6 +411,20 @@ void ProcessManager::fillBlocked(Frame &f)
         f.print(std::to_string(this->blocked[i].getBlockedTime()), BLANCO, true,
                 FIELD_WIDTH);
     }
+}
+
+void ProcessManager::reDrawFinished(Frame &f) {
+    f.drawFrame();
+    printFrames(nullptr, nullptr, &f);
+    for (size_t i = 0; i < this->finished.size(); ++i)
+        fillFinished(f, this->finished[i]);
+}
+
+void ProcessManager::reDrawReady(Frame &f) {
+    f.drawFrame();
+    printFrames(&f);
+    for (size_t i = 0; i < this->ready.size(); ++i)
+        fillReady(f, this->ready[i]);
 }
 
 void ProcessManager::fillCurrent(Frame &f, Process &p)

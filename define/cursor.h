@@ -73,8 +73,7 @@ public:
 
     // Dibuja un marco en la terminal y guarda la información brindada para
     // imprimir el contenido dentro del marco
-    void drawFrame(int x, int y, int w, int h, char color = BLANCO,
-                   bool foreground = false, std::string caracter = "*");
+    void drawFrame();
     // Imprime un mensaje dentro del marco
     void printNum(const int& msj, char color = BLANCO,
                bool newl = false);
