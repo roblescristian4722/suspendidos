@@ -86,10 +86,10 @@ void ProcessManager::printBCP(const bool& finished)
                         << "Tiempo de retorno: " << (*queue)[i].getReturnTime()
                         << std::endl;
             std::cout << std::endl;
-            if (finished)
-                break;
         }
-    }
+        if (finished)
+            break;
+    }   
     if (current != nullptr)
         if (current->getId())
             std::cout << "ID: " << current->getId() << std::endl
@@ -251,6 +251,7 @@ void ProcessManager::checkBlocked()
 
 void ProcessManager::executeProcess()
 {
+    Cursor::hideCursor();
     std::string auxStr = "";
     long cont;
     unsigned short jump;
@@ -336,6 +337,7 @@ void ProcessManager::executeProcess()
     readyF.rmContent();
     currentF.rmContent();
     printFrames(true, true);
+    Cursor::showCursor();
 }
 
 unsigned short ProcessManager::keyListener(long &cont)
