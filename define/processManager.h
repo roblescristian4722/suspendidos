@@ -32,10 +32,15 @@ private:
     Process* current;
     std::vector<Process> finished;
     std::vector<Process> blocked;
+    Frame readyF;
+    Frame finishedF;
+    Frame currentF;
+    Frame blockedF;
     std::map<std::vector<Process>*, std::string> states;
     std::map<std::vector<Process>*, char> stateColors;
     static std::map<std::string, bool> idsUsed;
     unsigned long lapsedTime;
+    unsigned long lastId;
 
     // Establece el ID del Process, retorna true si el Process fue exitoso y 
     // retorna false en caso de que el ID sea incorrecto o ya esté en uso
@@ -51,8 +56,8 @@ private:
                                               std::map<std::string,bool>*),
                        std::map<std::string, bool>* idsUsed);
     // Inicializa las 3 ventanas para la ejecición de procesos
-    void printFrames(Frame* pend = nullptr, Frame* act = nullptr,
-                          Frame* term = nullptr, Frame* bloq = nullptr);
+    void printFrames(bool pend = false, bool act = false, bool term = false,
+                     bool bloq = false);
     // Genera tiempo aleatorio entre un rango de 6 a 15 segundos
     unsigned long generateTime();
     // Genera una opreración aleatoria
@@ -72,13 +77,13 @@ private:
     // kbhit: i, p, c, e, b
     unsigned short keyListener(long& cont);
     // Se proveen datos para el frame de procesos bloqueados
-    void fillBlocked(Frame &f);
+    void fillBlocked();
     // Se proveen datos para el frame del proceso actual
-    void fillCurrent(Frame &f, Process &p);
+    void fillCurrent();
     // Se proveen datos para el frame de procesos terminados
-    void fillFinished(Frame &f, Process &p);
+    void fillFinished(Process &p);
     // Se proveen datos para el frame de procesos listos
-    void fillReady(Frame &f, Process &p);
+    void fillReady(Process &p);
     // Retorna true si es necesario crear un proceso vacío y retorna false en
     // caso contario
     bool dummyProcess();
@@ -92,10 +97,10 @@ private:
     // Itera por la cola de bloqueados reduciendo el contador de bloqueo de cada
     // uno, si el contador de un proceso llega a cero se inserta en la cola de
     // listos
-    void checkBlocked(Frame &f);
+    void checkBlocked();
     void printBCP(const bool& finished = false);
-    void reDrawReady(Frame &f);
-    void reDrawFinished(Frame &f);
+    void reDrawReady();
+    void reDrawFinished();
     bool printBCPData(std::vector<Process> *v);
 
 public :
