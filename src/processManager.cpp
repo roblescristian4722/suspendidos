@@ -69,17 +69,21 @@ void ProcessManager::printBCP(const bool& finished)
                     << std::endl
                     << "Tiempo de llegada: " << (*queue)[i].getArrivalTime()
                     << std::endl
-                    << "Tiempo de espera: " << (*queue)[i].getWaitingTime()
-                    << std::endl
                     << "Tiempo de servicio: " << (*queue)[i].getServiceTime()
                     << std::endl;
+            if (states[queue] != "Nuevo")
+                (*queue)[i].setWaitingTime(lapsedTime - (*queue)[i].getArrivalTime()
+                                           - (*queue)[i].getServiceTime());
+            std::cout << "Tiempo de espera: " << (*queue)[i].getWaitingTime()
+                    << std::endl;
+            if ((*queue)[i].getResponseTime() != NO_RESPONSE_TIME)
+                std::cout << "Tiempo de respuesta: " << (*queue)[i].getResponseTime()
+                          << std::endl;
             if (states[queue] == "Finalizado")
                 std::cout << "Resultado: " << (*queue)[i].getResult() << std::endl
                         << "Tiempo de finalizacion: " << (*queue)[i].getFinishTime()
                         << std::endl
                         << "Tiempo de retorno: " << (*queue)[i].getReturnTime()
-                        << std::endl
-                        << "Tiempo de respuesta: " << (*queue)[i].getResponseTime()
                         << std::endl;
             std::cout << std::endl;
             if (finished)
@@ -94,11 +98,13 @@ void ProcessManager::printBCP(const bool& finished)
                     << "Operacion: " << current->getOp() << std::endl
                     << "Tiempo maximo estimado: " << current->getMaxTime()
                     << std::endl
-                    << "Tiempo restante:" << current->getRemTime()
+                    << "Tiempo restante: " << current->getRemTime()
                     << std::endl
                     << "Tiempo de llegada: " << current->getArrivalTime()
-                    << std::endl
-                    << "Tiempo de espera: " << current->getWaitingTime()
+                    << std::endl;
+            current->setWaitingTime(lapsedTime - current->getArrivalTime()
+                                    - current->getServiceTime());
+            std::cout << "Tiempo de espera: " << current->getWaitingTime()
                     << std::endl
                     << "Tiempo de servicio: " << current->getServiceTime()
                     << std::endl
@@ -270,7 +276,7 @@ void ProcessManager::executeProcess()
         cont = current->getMaxTime() - current->getServiceTime();
         allBlocked = false;
         while (cont--) {
-            if (current->getResponseTime() == NO_RESPOND_TIME)
+            if (current->getResponseTime() == NO_RESPONSE_TIME)
                 current->setResponseTime(lapsedTime
                 - current->getArrivalTime());
             jump = keyListener(cont);
@@ -294,14 +300,14 @@ void ProcessManager::executeProcess()
             printFrames(false, false, false, true);
             fillBlocked();
             currentF.rmContent();
-            if (jump == CONTI || jump == BCP) {
+            if (jump != ERROR && jump != INTER) {
                 printFrames(false, true);
                 fillCurrent();
             }
             auxStr = "Procesos nuevos: " + std::to_string(pending.size())
             + "\nTiempo transcurrido: " + std::to_string(ProcessManager::lapsedTime);
             Cursor::rmPrint(1, 2, auxStr);
-            if (jump != CONTI && jump != BCP)
+            if (jump == INTER || jump == ERROR || (allBlocked && jump == NEWP && !pending.size()))
                 break;
             std::this_thread::sleep_for(std::chrono::seconds(1));
             checkBlocked();
@@ -316,7 +322,7 @@ void ProcessManager::executeProcess()
                 - current->getArrivalTime());
                 current->setWaitingTime(current->getReturnTime()
                 - current->getServiceTime());
-                if (current->getResponseTime() == NO_RESPOND_TIME)
+                if (current->getResponseTime() == NO_RESPONSE_TIME)
                     current->setResponseTime(0);
                 if (jump != ERROR)
                     current->calculate();
@@ -356,7 +362,7 @@ unsigned short ProcessManager::keyListener(long &cont)
                 pending.erase(pending.begin());
                 reDrawReady();
             }
-        break;
+        return NEWP;
         case 'b': case 'B':
             pause(true);
         return BCP;
@@ -481,6 +487,6 @@ void ProcessManager::printFrames(bool rdy, bool act, bool fnshd, bool bloq)
     }
     if (bloq) {
         blockedF.update("Procesos bloqueados:", BLANCO, true);
-        blockedF.print("ID      TTB", BLANCO, true);
+        blockedF.print("ID      TRB", BLANCO, true);
     }
 }

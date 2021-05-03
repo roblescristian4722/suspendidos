@@ -14,13 +14,14 @@
 #define FRAME_Y 5
 #define MAX_SIZE_JOBS_FRAME 8
 #define MAX_BLOCKED_TIME 5
-#define NO_RESPOND_TIME -1
+#define NO_RESPONSE_TIME -1
 
 enum ExecResult{
     CONTI = 0,
     INTER,
     ERROR,
-    BCP
+    BCP,
+    NEWP
 };
 
 class ProcessManager
