@@ -40,8 +40,8 @@ private:
     std::map<std::vector<Process>*, std::string> states;
     std::map<std::vector<Process>*, char> stateColors;
     static std::map<std::string, bool> idsUsed;
-    unsigned long lapsedTime;
     unsigned long lastId;
+    unsigned long lapsedTime;
 
     // Establece el ID del Process, retorna true si el Process fue exitoso y 
     // retorna false en caso de que el ID sea incorrecto o ya esté en uso
@@ -99,10 +99,12 @@ private:
     // uno, si el contador de un proceso llega a cero se inserta en la cola de
     // listos
     void checkBlocked();
+    // Imprime en pantalla el BCP de los procesos registrados
     void printBCP(const bool& finished = false);
+    // Vuelve a imprimir la ventana de procesos listos
     void reDrawReady();
+    // Vuelve a imprimir la ventana de procesos terminados
     void reDrawFinished();
-    bool printBCPData(std::vector<Process> *v);
 
 public :
     ProcessManager();

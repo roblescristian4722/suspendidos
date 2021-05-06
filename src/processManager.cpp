@@ -45,13 +45,6 @@ const unsigned long& ProcessManager::getId() const
 void ProcessManager::printFinished()
 { printBCP(&finished); }
 
-bool ProcessManager::printBCPData(std::vector<Process> *v)
-{
-    if (states[v] == "Finalizado")
-        return true;
-    return false;
-}
-
 void ProcessManager::printBCP(const bool& finished)
 {
     std::vector<Process>* queue;
@@ -62,29 +55,34 @@ void ProcessManager::printBCP(const bool& finished)
             queue = &this->finished;
         for (size_t i = 0; i < queue->size(); ++i) {
             std::cout << "ID: " << (*queue)[i].getId() << std::endl
-                    << "Estado: " << Cursor::colorText(stateColors[queue],
-                        states[queue]) << std::endl
-                    << "Operacion: " << (*queue)[i].getOp() << std::endl
-                    << "Tiempo maximo estimado: " << (*queue)[i].getMaxTime()
-                    << std::endl
-                    << "Tiempo de llegada: " << (*queue)[i].getArrivalTime()
-                    << std::endl
-                    << "Tiempo de servicio: " << (*queue)[i].getServiceTime()
-                    << std::endl;
-            if (states[queue] != "Nuevo")
-                (*queue)[i].setWaitingTime(lapsedTime - (*queue)[i].getArrivalTime()
-                                           - (*queue)[i].getServiceTime());
-            std::cout << "Tiempo de espera: " << (*queue)[i].getWaitingTime()
-                    << std::endl;
-            if ((*queue)[i].getResponseTime() != NO_RESPONSE_TIME)
-                std::cout << "Tiempo de respuesta: " << (*queue)[i].getResponseTime()
-                          << std::endl;
-            if (states[queue] == "Finalizado")
-                std::cout << "Resultado: " << (*queue)[i].getResult() << std::endl
-                        << "Tiempo de finalizacion: " << (*queue)[i].getFinishTime()
+                      << "Estado: " << Cursor::colorText(stateColors[queue],
+                                                    states[queue]) << std::endl;
+            if (states[queue] != "Nuevo") {
+                if (states[queue] != "Finalizado")
+                    (*queue)[i].setWaitingTime(lapsedTime - (*queue)[i].getArrivalTime()
+                                               - (*queue)[i].getServiceTime());
+                std::cout << "Operacion: " << (*queue)[i].getOp() << std::endl
+                        << "Tiempo maximo estimado: " << (*queue)[i].getMaxTime()
                         << std::endl
-                        << "Tiempo de retorno: " << (*queue)[i].getReturnTime()
+                        << "Tiempo de llegada: " << (*queue)[i].getArrivalTime()
+                        << std::endl
+                        << "Tiempo de servicio: " << (*queue)[i].getServiceTime()
                         << std::endl;
+                std::cout << "Tiempo de espera: " << (*queue)[i].getWaitingTime()
+                          << std::endl;
+                if ((*queue)[i].getResponseTime() != NO_RESPONSE_TIME)
+                    std::cout << "Tiempo de respuesta: " << (*queue)[i].getResponseTime()
+                            << std::endl;
+                if (states[queue] == "Finalizado")
+                    std::cout << "Resultado: " << (*queue)[i].getResult() << std::endl
+                            << "Tiempo de finalizacion: " << (*queue)[i].getFinishTime()
+                            << std::endl
+                            << "Tiempo de retorno: " << (*queue)[i].getReturnTime()
+                            << std::endl;
+                if (states[queue] == "Bloqueado")
+                    std::cout << "Tiempo bloqueado restante: "
+                              << (*queue)[i].getBlockedTime() << std::endl;
+            }
             std::cout << std::endl;
         }
         if (finished)
@@ -251,13 +249,13 @@ void ProcessManager::checkBlocked()
 
 void ProcessManager::executeProcess()
 {
-    Cursor::hideCursor();
     std::string auxStr = "";
     long cont;
     unsigned short jump;
     bool allBlocked;
+
+    Cursor::hideCursor();
     Cursor::clrscr();
-    
     readyF.drawFrame();
     blockedF.drawFrame();
     finishedF.drawFrame();
@@ -347,16 +345,16 @@ unsigned short ProcessManager::keyListener(long &cont)
         input = getch();
         switch (input) {
         case 'i': case 'I':
-        return inter(cont);
+            return inter(cont);
         case 'p': case 'P':
             pause();
-        return CONTI;
+            return CONTI;
         case 'e': case 'E':
             if (current->getId()) {
                 current->setResult("ERROR");
                 return ERROR;
             }
-        return CONTI;
+            return CONTI;
         case 'n': case 'N':
             obtainProcess(++lastId);
             if (onMemory() <= MAX_READY_JOB_AMOUNT) {
@@ -364,12 +362,12 @@ unsigned short ProcessManager::keyListener(long &cont)
                 pending.erase(pending.begin());
                 reDrawReady();
             }
-        return NEWP;
+            return NEWP;
         case 'b': case 'B':
             pause(true);
-        return BCP;
+            return BCP;
         default:
-        return CONTI;
+            return CONTI;
         }
     }
     return CONTI;
