@@ -1,3 +1,0 @@
-"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\procesamientoPorLotes.dir/objects.a
-C:\PROGRA~1\MINGW-~1\X86_64~1.0-P\mingw64\bin\ar.exe cr CMakeFiles\procesamientoPorLotes.dir/objects.a @CMakeFiles\procesamientoPorLotes.dir\objects1.rsp
-C:\PROGRA~1\MINGW-~1\X86_64~1.0-P\mingw64\bin\X86_64~2.EXE -g -Wl,--whole-archive CMakeFiles\procesamientoPorLotes.dir/objects.a -Wl,--no-whole-archive -o procesamientoPorLotes.exe -Wl,--out-implib,libprocesamientoPorLotes.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\procesamientoPorLotes.dir\linklibs.rsp
