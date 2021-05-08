@@ -45,7 +45,7 @@ const unsigned long& ProcessManager::getId() const
 void ProcessManager::printFinished()
 { printBCP(&finished); }
 
-void ProcessManager::printBCP(const bool& finished)
+void ProcessManager::printBCP(bool finished)
 {
     std::vector<Process>* queue;
     std::map<std::vector<Process>*, std::string>::iterator it;
@@ -88,8 +88,8 @@ void ProcessManager::printBCP(const bool& finished)
         if (finished)
             break;
     }   
-    if (current != nullptr)
-        if (current->getId())
+    if (current != nullptr) {
+        if (current->getId()) {
             std::cout << "ID: " << current->getId() << std::endl
                     << "Estado:" << Cursor::colorText(MORADO, "En ejecucion")
                     << std::endl
@@ -108,6 +108,8 @@ void ProcessManager::printBCP(const bool& finished)
                     << std::endl
                     << "Tiempo de respuesta: " << current->getResponseTime()
                     << std::endl << std::endl;
+        }
+    }
 }
 
 void ProcessManager::setId(const unsigned long &id)
@@ -359,6 +361,7 @@ unsigned short ProcessManager::keyListener(long &cont)
             obtainProcess(++lastId);
             if (onMemory() <= MAX_READY_JOB_AMOUNT) {
                 ready.push_back(*pending.begin());
+                ready.back().setArrivalTime(lapsedTime);
                 pending.erase(pending.begin());
                 reDrawReady();
             }

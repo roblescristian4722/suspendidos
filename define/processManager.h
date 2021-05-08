@@ -100,7 +100,7 @@ private:
     // listos
     void checkBlocked();
     // Imprime en pantalla el BCP de los procesos registrados
-    void printBCP(const bool& finished = false);
+    void printBCP(bool finished = false);
     // Vuelve a imprimir la ventana de procesos listos
     void reDrawReady();
     // Vuelve a imprimir la ventana de procesos terminados

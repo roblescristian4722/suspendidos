@@ -21,4 +21,6 @@ int main()
               << std::endl;
     std::cin.get();std::cin.get();
     m.printFinished();
+    std::cin.get();
+    return 0;
 }
