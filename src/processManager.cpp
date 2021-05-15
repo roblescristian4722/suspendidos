@@ -18,9 +18,9 @@ ProcessManager::ProcessManager()
     this->stateColors[&pending] = AMARILLO;
     this->readyF.setFrame(1, FRAME_Y, FIELD_WIDTH * 3 + 2,
                           MAX_SIZE_JOBS_FRAME + 2, AMARILLO);
-    this->currentF.setFrame(FIELD_WIDTH * 3 + 4, FRAME_Y, FIELD_WIDTH * 5, 6,
+    this->currentF.setFrame(FIELD_WIDTH * 3 + 4, FRAME_Y, FIELD_WIDTH * 6, 6,
                             VERDE);
-    this->finishedF.setFrame(FIELD_WIDTH * 8 + 5, FRAME_Y, FIELD_WIDTH * 4, 25,
+    this->finishedF.setFrame(FIELD_WIDTH * 9 + 5, FRAME_Y, FIELD_WIDTH * 4, 25,
                              CYAN);
     this->blockedF.setFrame(1, FRAME_Y + MAX_SIZE_JOBS_FRAME + 2,
                             FIELD_WIDTH * 2 + 2, MAX_SIZE_JOBS_FRAME + 3, MORADO);
@@ -122,9 +122,11 @@ void ProcessManager::init()
     Cursor::clrscr();
     std::cout << Cursor::colorText(VERDE, "Procesos a capturar: ");
     std::cin >> proc;
+    std::cout << Cursor::colorText(VERDE, "Quantum a utilizar: ");
+    std::cin >> quantum;
     while (proc--)
         obtainProcess(++lastId);
-    executeProcess();
+    execute();
 }
 
 void ProcessManager::obtainProcess(const unsigned long& cont)
@@ -136,6 +138,7 @@ void ProcessManager::obtainProcess(const unsigned long& cont)
     aux.setOp(generateOp());
     // Captura de tiempo máximo
     aux.setMaxTime(std::to_string(generateTime()));
+    aux.setQuantum(quantum);
     pending.push_back(aux);
 }
 
@@ -249,13 +252,61 @@ void ProcessManager::checkBlocked()
     }
 }
 
-void ProcessManager::executeProcess()
+void ProcessManager::executeProcess(long execTime)
 {
     std::string auxStr = "";
-    long cont;
-    unsigned short jump;
-    bool allBlocked;
+    while (execTime--) {
+        allBlocked = false;
+        if (current->getResponseTime() == NO_RESPONSE_TIME)
+            current->setResponseTime(lapsedTime - current->getArrivalTime());
+        jump = keyListener(execTime);
+        if (jump == BCP) {
+            currentF.drawFrame();
+            blockedF.drawFrame();
+            reDrawReady();
+            reDrawFinished();
+        }
+        // Se genera proceso extra si ya hay 5 procesos bloqueados
+        if (dummyProcess() && !allBlocked){
+            execTime = blocked.begin()->getBlockedTime();
+            current = new Process;
+            current->setMaxTime(std::to_string(execTime));
+            current->setId(std::to_string(0));
+            current->setRemTime(execTime);
+            current->setQuantum(execTime);
+            allBlocked = true;
+            execTime--;
+            jump = CONTI;
+        }
+        printFrames(false, false, false, true);
+        fillBlocked();
+        currentF.rmContent();
+        if (jump != ERROR && jump != INTER) {
+            printFrames(false, true);
+            fillCurrent();
+        }
+        auxStr = "Procesos nuevos: " + std::to_string(pending.size())
+        + "\nTiempo transcurrido: " + std::to_string(ProcessManager::lapsedTime);
+        Cursor::rmPrint(1, 2, auxStr);
+        if (jump == INTER || jump == ERROR || (allBlocked && jump == NEWP && !pending.size()))
+            break;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        checkBlocked();
+        ++ProcessManager::lapsedTime;
+        current->setRemTime(execTime);
+        current->setServiceTime(current->getServiceTime() + 1);
+        current->setQuantum(current->getQuantum() - 1);
+        if (!current->getQuantum()) {
+            jump = QUANTUM;
+            current->setQuantum(quantum);
+            break;
+        }
+    }
+}
 
+void ProcessManager::execute()
+{
+    bool allBlocked;
     Cursor::hideCursor();
     Cursor::clrscr();
     readyF.drawFrame();
@@ -274,55 +325,15 @@ void ProcessManager::executeProcess()
         for (size_t i = 0; i < ready.size(); ++i)
             fillReady(ready[i]);
         
-        cont = current->getMaxTime() - current->getServiceTime();
         allBlocked = false;
-        while (cont--) {
-            if (current->getResponseTime() == NO_RESPONSE_TIME)
-                current->setResponseTime(lapsedTime
-                - current->getArrivalTime());
-            jump = keyListener(cont);
-            if (jump == BCP) {
-                currentF.drawFrame();
-                blockedF.drawFrame();
-                reDrawReady();
-                reDrawFinished();
-            }
-            // Se genera proceso extra si ya hay 5 procesos bloqueados
-            if (dummyProcess() && !allBlocked){
-                cont = blocked.begin()->getBlockedTime();
-                current = new Process;
-                current->setMaxTime(std::to_string(cont));
-                current->setId(std::to_string(0));
-                current->setRemTime(cont);
-                allBlocked = true;
-                cont--;
-                jump = CONTI;
-            }
-            printFrames(false, false, false, true);
-            fillBlocked();
-            currentF.rmContent();
-            if (jump != ERROR && jump != INTER) {
-                printFrames(false, true);
-                fillCurrent();
-            }
-            auxStr = "Procesos nuevos: " + std::to_string(pending.size())
-            + "\nTiempo transcurrido: " + std::to_string(ProcessManager::lapsedTime);
-            Cursor::rmPrint(1, 2, auxStr);
-            if (jump == INTER || jump == ERROR || (allBlocked && jump == NEWP && !pending.size()))
-                break;
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-            checkBlocked();
-            ++ProcessManager::lapsedTime;
-            current->setRemTime(cont);
-            current->setServiceTime(current->getServiceTime() + 1);
-        }
+        executeProcess(current->getMaxTime() - current->getServiceTime());
         if (jump != INTER) {
-            if (current->getId()) {
+            if (jump == QUANTUM && current->getRemTime())
+                ready.push_back(*current);
+            else if (current->getId()) {
                 current->setFinishTime(lapsedTime);
-                current->setReturnTime(current->getFinishTime()
-                - current->getArrivalTime());
-                current->setWaitingTime(current->getReturnTime()
-                - current->getServiceTime());
+                current->setReturnTime(current->getFinishTime() - current->getArrivalTime());
+                current->setWaitingTime(current->getReturnTime() - current->getServiceTime());
                 if (current->getResponseTime() == NO_RESPONSE_TIME)
                     current->setResponseTime(0);
                 if (jump != ERROR)
@@ -346,31 +357,31 @@ unsigned short ProcessManager::keyListener(long &cont)
     if (kbhit()) {
         input = getch();
         switch (input) {
-        case 'i': case 'I':
-            return inter(cont);
-        case 'p': case 'P':
-            pause();
-            return CONTI;
-        case 'e': case 'E':
-            if (current->getId()) {
-                current->setResult("ERROR");
-                return ERROR;
-            }
-            return CONTI;
-        case 'n': case 'N':
-            obtainProcess(++lastId);
-            if (onMemory() <= MAX_READY_JOB_AMOUNT) {
-                ready.push_back(*pending.begin());
-                ready.back().setArrivalTime(lapsedTime);
-                pending.erase(pending.begin());
-                reDrawReady();
-            }
-            return NEWP;
-        case 'b': case 'B':
-            pause(true);
-            return BCP;
-        default:
-            return CONTI;
+            case 'i': case 'I':
+                return inter(cont);
+            case 'p': case 'P':
+                pause();
+                return CONTI;
+            case 'e': case 'E':
+                if (current->getId()) {
+                    current->setResult("ERROR");
+                    return ERROR;
+                }
+                return CONTI;
+            case 'n': case 'N':
+                obtainProcess(++lastId);
+                if (onMemory() <= MAX_READY_JOB_AMOUNT) {
+                    ready.push_back(*pending.begin());
+                    ready.back().setArrivalTime(lapsedTime);
+                    pending.erase(pending.begin());
+                    reDrawReady();
+                }
+                return NEWP;
+            case 'b': case 'B':
+                pause(true);
+                return BCP;
+            default:
+                return CONTI;
         }
     }
     return CONTI;
@@ -380,8 +391,7 @@ bool ProcessManager::dummyProcess()
 {
     if (blocked.size() == MAX_READY_JOB_AMOUNT + 1)
         return true;
-    if (!pending.size() && !ready.size() && blocked.size()
-    && current == nullptr)
+    if (!pending.size() && !ready.size() && blocked.size() && current == nullptr)
         return true;
     return false;
 }
@@ -452,6 +462,7 @@ void ProcessManager::reDrawReady() {
 void ProcessManager::fillCurrent()
 {
     currentF.print(std::to_string(current->getId()), BLANCO, false, FIELD_WIDTH);
+    currentF.print(std::to_string(current->getQuantum()), BLANCO, false, FIELD_WIDTH);
     currentF.print(current->getOp(), BLANCO, false, FIELD_WIDTH);
     currentF.print(std::to_string(current->getMaxTime()), BLANCO, false, FIELD_WIDTH);
     currentF.print(std::to_string(current->getRemTime()), BLANCO, false, FIELD_WIDTH);
@@ -481,8 +492,7 @@ void ProcessManager::printFrames(bool rdy, bool act, bool fnshd, bool bloq)
     }
     if (act) {
         currentF.update("Proceso en ejecucion:", BLANCO, true);
-        currentF.print("ID      OP      TME     TMR     TMT",
-                       BLANCO, true);
+        currentF.print("ID      QTM     OP      TME     TMR     TMT", BLANCO, true);
     }
     if (fnshd){
         finishedF.print("Procesos terminados:", BLANCO, true);

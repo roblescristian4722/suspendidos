@@ -20,6 +20,7 @@ private:
     unsigned short waitingTime;
     unsigned short blockedTime;
     short responseTime;
+    unsigned int quantum;
 
 public:
     Process();
@@ -53,6 +54,8 @@ public:
     const unsigned short &getBlockedTime() const;
     // Obtiene el tiempo de respuesta
     const short &getResponseTime() const;
+    // Obtiene el quantum restante
+    const unsigned int &getQuantum() const;
 
     // Genera el resultado de la operación
     void calculate();
@@ -83,6 +86,8 @@ public:
     bool setId(const std::string& idD);
     // Asigna el tiempo máximo estimado de ejecucón del Process (en segundos)
     bool setMaxTime(const std::string& tiempoMax);
+    // Asigna el quantum restante
+    void setQuantum(const unsigned int &v);
 };
 
 #endif // PROCESS_H

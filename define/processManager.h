@@ -21,7 +21,8 @@ enum ExecResult{
     INTER,
     ERROR,
     BCP,
-    NEWP
+    NEWP,
+    QUANTUM,
 };
 
 class ProcessManager
@@ -42,6 +43,9 @@ private:
     static std::map<std::string, bool> idsUsed;
     unsigned long lastId;
     unsigned long lapsedTime;
+    unsigned int quantum;
+    unsigned short jump;
+    bool allBlocked;
 
     // Establece el ID del Process, retorna true si el Process fue exitoso y 
     // retorna false en caso de que el ID sea incorrecto o ya esté en uso
@@ -66,9 +70,10 @@ private:
     // Función genérica que llama a los setters de un Process, se ejecuta de
     // en un bucle hasta que el setter retorne true
     void obtainProcess(const unsigned long& cont);
-    // Se itera por la lista de procesos pendientes y se ejecutan de en orden
-    // de uno en uno
-    void executeProcess();
+    // Comienza con la ejecución de los procesos
+    void execute();
+    // Ejecuta el proceso actual
+    void executeProcess(long execTime);
     // Interrumpe un Process y lo pone al final de la cola de procesos del
     // ProcessManager actual
     unsigned short inter(long &cont);

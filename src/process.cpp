@@ -15,6 +15,7 @@ Process::Process()
     this->maxTime = 0;
     this->remTime = 0;
     this->returnTime = 0;
+    this->quantum = 0;
     this->op = "0";
     this->responseTime = -1;
 }
@@ -47,6 +48,8 @@ const unsigned short &Process::getBlockedTime() const
 { return this->blockedTime; }
 const short &Process::getResponseTime() const
 { return this->responseTime; }
+const unsigned int &Process::getQuantum() const
+{ return this->quantum; }
 
 //Setters validados
 bool Process::setName(const std::string& name)
@@ -113,6 +116,8 @@ void Process::setBlockedTime(const unsigned short &blockedTime)
 { this->blockedTime = blockedTime; }
 void Process::setResponseTime(const unsigned short &responseTime)
 { this->responseTime = responseTime; }
+void Process::setQuantum(const unsigned int &v)
+{ this->quantum = v; }
 
 void Process::calculate()
 {
