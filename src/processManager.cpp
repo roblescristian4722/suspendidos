@@ -138,7 +138,6 @@ void ProcessManager::obtainProcess(const unsigned long& cont)
     aux.setOp(generateOp());
     // Captura de tiempo máximo
     aux.setMaxTime(std::to_string(generateTime()));
-    aux.setQuantum(quantum);
     pending.push_back(aux);
 }
 
@@ -273,7 +272,6 @@ void ProcessManager::executeProcess(long execTime)
             current->setMaxTime(std::to_string(execTime));
             current->setId(std::to_string(0));
             current->setRemTime(execTime);
-            current->setQuantum(execTime);
             allBlocked = true;
             execTime--;
             jump = CONTI;
@@ -286,7 +284,8 @@ void ProcessManager::executeProcess(long execTime)
             fillCurrent();
         }
         auxStr = "Procesos nuevos: " + std::to_string(pending.size())
-        + "\nTiempo transcurrido: " + std::to_string(ProcessManager::lapsedTime);
+        + "\nTiempo transcurrido: " + std::to_string(ProcessManager::lapsedTime)
+        + "\nValor del Quantum: " + std::to_string(quantum);
         Cursor::rmPrint(1, 2, auxStr);
         if (jump == INTER || jump == ERROR || (allBlocked && jump == NEWP && !pending.size()))
             break;
@@ -295,10 +294,10 @@ void ProcessManager::executeProcess(long execTime)
         ++ProcessManager::lapsedTime;
         current->setRemTime(execTime);
         current->setServiceTime(current->getServiceTime() + 1);
-        current->setQuantum(current->getQuantum() - 1);
-        if (!current->getQuantum()) {
+        current->setQuantum(current->getQuantum() + 1);
+        if (current->getQuantum() == quantum) {
             jump = QUANTUM;
-            current->setQuantum(quantum);
+            current->setQuantum(0);
             break;
         }
     }
@@ -418,7 +417,7 @@ void ProcessManager::pause(const bool& bcp)
                   << std::endl;
         printBCP();
     } else {
-        Cursor::gotoxy(1, 3);
+        Cursor::gotoxy(1, 4);
         std::cout << Cursor::colorText(MORADO,
                             "Ejecucion pausada - Presione \"c\" para continuar");
     }    
