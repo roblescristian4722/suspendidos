@@ -297,7 +297,6 @@ void ProcessManager::executeProcess(long execTime)
         current->setQuantum(current->getQuantum() + 1);
         if (current->getQuantum() == quantum) {
             jump = QUANTUM;
-            current->setQuantum(0);
             break;
         }
     }
@@ -315,16 +314,15 @@ void ProcessManager::execute()
     printFrames(true, true, true, true);
     while (processLeft()) {
         jump = false;
+        allBlocked = false;
         pendingToReady();
         current = new Process(ready.front());
+        current->setQuantum(0);
         ready.erase(ready.begin());
-
         readyF.rmContent();
         printFrames(true);
         for (size_t i = 0; i < ready.size(); ++i)
             fillReady(ready[i]);
-        
-        allBlocked = false;
         executeProcess(current->getMaxTime() - current->getServiceTime());
         if (jump != INTER) {
             if (jump == QUANTUM && current->getRemTime())
