@@ -87,7 +87,6 @@ void Cursor::drawXLine(int x, int y, int w, char color, bool foreground,
         std::cout << colorText(color, caracter);
     }
     gotoxy(i, y);
-    std::cout.flush();
 }
 
 void Cursor::drawYLine(int x, int y, int h, char color, bool foreground,
@@ -99,7 +98,6 @@ void Cursor::drawYLine(int x, int y, int h, char color, bool foreground,
         std::cout << colorText(color, caracter);
     }
     gotoxy(x, i);
-    std::cout.flush();
 }
 
 void Frame::drawFrame()
@@ -140,7 +138,6 @@ void Frame::print(const std::string& msj, char color, bool newl,
         ++this->yPos;
         gotoxy(this->xPos, this->yPos);
     }
-    std::cout.flush();
 }
 
 void Frame::printNum(const int& msj, char color, bool newl)

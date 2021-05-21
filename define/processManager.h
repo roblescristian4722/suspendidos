@@ -35,29 +35,49 @@ class Controller
 private:
     friend class ProcessManager;
 
-    void initFrames(ProcessManager *pm);
-    void initStateColors(ProcessManager *pm);
-    void initStates(ProcessManager *pm);
+    bool readyUp;
+    bool finishedUp;
+    bool blockedUp;
+    Frame readyF;
+    Frame finishedF;
+    Frame currentF;
+    Frame blockedF;
+    std::vector<Process> *pending;
+    std::vector<Process> *ready;
+    Process *current;
+    std::vector<Process> *finished;
+    std::vector<Process> *blocked;
+    std::map<std::vector<Process> *, std::string> *states;
+    std::map<std::vector<Process> *, char> *stateColors;
+
     // Se proveen datos para el frame de procesos bloqueados
-    void fillBlocked(ProcessManager *pm);
+    void fillBlocked();
     // Se proveen datos para el frame del proceso actual
-    void fillCurrent(ProcessManager *pm);
+    void fillCurrent();
     // Se proveen datos para el frame de procesos terminados
-    void fillFinished(ProcessManager *pm, Process &p);
+    void fillFinished(Process &p);
     // Se proveen datos para el frame de procesos listos
-    void fillReady(ProcessManager *pm, Process &p);
+    void fillReady(Process &p);
     // Imprime en pantalla el BCP de los procesos registrados
-    void printBCP(ProcessManager *pm, bool finished = false);
-    // Vuelve a imprimir la ventana de procesos listos
-    void reDrawReady(ProcessManager *pm);
-    // Vuelve a imprimir la ventana de procesos terminados
-    void reDrawFinished(ProcessManager *pm);
+    void printBCP(const unsigned long lapsedTime, bool finished = false);
     // Inicializa las 3 ventanas para la ejecición de procesos
-    void printFrames(ProcessManager *pm, bool pend = false, bool act = false,
+    void printFrames(bool pend = false, bool act = false,
                      bool term = false, bool bloq = false);
+    // Vuelve a dibujar los Frames ready y blocked después de mostrar el BCP
+    void redrawBCP();
+    void printCounters(const size_t &pending, const size_t &lapsedTime,
+                       const unsigned int quantum);
+    void initFrames();
+    void endFrames();
+    void printUpdated();
 
 public:
     Controller();
+    Controller(std::vector<Process> *pending, std::vector<Process> *ready,
+               std::vector<Process> *finished, std::vector<Process> *blocked,
+               Process *current,
+               std::map<std::vector<Process> *, std::string> *states,
+               std::map<std::vector<Process> *, char> *stateColors);
     ~Controller();
 };
 
@@ -67,16 +87,11 @@ class ProcessManager
 private:
     friend class Controller;
 
-    unsigned long id;
     std::vector<Process> pending;
     std::vector<Process> ready;
     Process* current;
     std::vector<Process> finished;
     std::vector<Process> blocked;
-    Frame readyF;
-    Frame finishedF;
-    Frame currentF;
-    Frame blockedF;
     std::map<std::vector<Process>*, std::string> states;
     std::map<std::vector<Process>*, char> stateColors;
     static std::map<std::string, bool> idsUsed;
@@ -122,7 +137,7 @@ private:
     // Retorna true si es necesario crear un proceso vacío y retorna false en
     // caso contario
     bool dummyProcess();
-    void createDummyProcess(const long& remTime);
+    void createDummyProcess(const long& execTime);
     // Carga de uno a uno los procesos nuevos en memoria (máximo 5 al mismo
     // tiempo) hasta que la cola de procesos nuevos esté vacía
     void pendingToReady();

@@ -8,9 +8,8 @@ ProcessManager::ProcessManager()
     this->current = nullptr;
     this->lapsedTime = 0;
     this->lastId = 0;
-    controller.initStateColors(this);
-    controller.initStates(this);
-    controller.initFrames(this);
+    controller = Controller(&pending, &ready, &finished, &blocked, nullptr,
+                            &states, &stateColors);
 }
 
 ProcessManager::~ProcessManager()
@@ -26,14 +25,8 @@ const std::vector<Process>& ProcessManager::getReady() const
 Process* ProcessManager::getCurrent() const
 { return this->current; }
 
-const unsigned long& ProcessManager::getId() const
-{ return this->id; }
-
 void ProcessManager::printFinished()
-{ controller.printBCP(this, true); }
-
-void ProcessManager::setId(const unsigned long &id)
-{ this->id = id; }
+{ controller.printBCP(true); }
 
 void ProcessManager::init()
 {
@@ -162,12 +155,16 @@ void ProcessManager::checkBlocked()
     while (it < blocked.end()) {
         if (it->getBlockedTime() == 1) {
             ready.push_back(*it);
-            controller.fillReady(this,*it);
+            controller.readyUp = true;
             blocked.erase(it);
         } else {
             it->setBlockedTime(it->getBlockedTime() - 1);
             it++;
         }
+    }
+    if (!blocked.size()) {
+        controller.printFrames(false, false, false, true);
+        controller.blockedUp = false;
     }
 }
 
@@ -177,46 +174,30 @@ void ProcessManager::createDummyProcess(const long &execTime)
     current->setMaxTime(std::to_string(execTime));
     current->setId(std::to_string(0));
     current->setRemTime(execTime);
+    controller.current = current;
     allBlocked = true;
     jump = CONTI;
 }
 
 void ProcessManager::executeProcess(long execTime)
 {
-    std::string auxStr = "";
     while (execTime--) {
         allBlocked = false;
         // Se asigna un tiempo de respuesta si aún no se ha asignado uno
         if (current->getResponseTime() == NO_RESPONSE_TIME)
             current->setResponseTime(lapsedTime - current->getArrivalTime());
         jump = keyListener(execTime);
-        if (jump == BCP) {
-            currentF.drawFrame();
-            blockedF.drawFrame();
-            controller.reDrawReady(this);
-            controller.reDrawFinished(this);
-        }
+        if (jump == BCP)
+            controller.redrawBCP();
+        else if (jump == INTER)
+            controller.blockedUp = true;
         // Se genera proceso extra si ya hay 5 procesos bloqueados
         if (dummyProcess() && !allBlocked){
             execTime = blocked.begin()->getBlockedTime();
             createDummyProcess(execTime);
             execTime--;
         }
-
-        controller.printFrames(this, false, false, false, true);
-        controller.fillBlocked(this);
-        currentF.rmContent();
-
-        if (jump != ERROR && jump != INTER) {
-            controller.printFrames(this, false, true);
-            controller.fillCurrent(this);
-        }
-
-        auxStr = "Procesos nuevos: " + std::to_string(pending.size())
-        + "\nTiempo transcurrido: " + std::to_string(ProcessManager::lapsedTime)
-        + "\nValor del Quantum: " + std::to_string(quantum);
-        Cursor::rmPrint(1, 2, auxStr);
-
+        controller.printCounters(pending.size(), lapsedTime, quantum);
         if (jump == INTER || jump == ERROR || (allBlocked && jump == NEWP && !pending.size()))
             break;
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -229,37 +210,27 @@ void ProcessManager::executeProcess(long execTime)
             jump = QUANTUM;
             break;
         }
+        controller.printUpdated();
     }
 }
 
 void ProcessManager::execute()
 {
-    bool allBlocked;
-    Cursor::hideCursor();
-    Cursor::clrscr();
-    readyF.drawFrame();
-    blockedF.drawFrame();
-    finishedF.drawFrame();
-    currentF.drawFrame();
-    controller.printFrames(this, true, true, true, true);
+    controller.initFrames();
     while (processLeft()) {
         jump = CONTI;
         allBlocked = false;
-
         pendingToReady();
         if (ready.size()) {
             current = new Process(ready.front());
+            controller.current = current;
             ready.erase(ready.begin());
         }
         else
             createDummyProcess(blocked.front().getBlockedTime());
         current->setQuantum(0);
-
-        readyF.rmContent();
-        controller.printFrames(this, true);
-        for (size_t i = 0; i < ready.size(); ++i)
-            controller.fillReady(this,ready[i]);
-            
+        controller.readyUp = true;
+        controller.printUpdated();
         executeProcess(current->getMaxTime() - current->getServiceTime());
         if (jump != INTER) {
             if (jump == QUANTUM && current->getRemTime())
@@ -272,17 +243,16 @@ void ProcessManager::execute()
                     current->setResponseTime(0);
                 if (jump != ERROR)
                     current->calculate();
-                controller.fillFinished(this, *current);
+                controller.finishedUp = true;
                 finished.push_back(*current);
             }
             delete current;
+            controller.current = nullptr;
             current = nullptr;
         }
+        controller.printUpdated();
     }
-    readyF.rmContent();
-    currentF.rmContent();
-    controller.printFrames(this, true, true);
-    Cursor::showCursor();
+    controller.endFrames();
 }
 
 unsigned short ProcessManager::keyListener(long &cont)
@@ -308,7 +278,7 @@ unsigned short ProcessManager::keyListener(long &cont)
                     ready.push_back(*pending.begin());
                     ready.back().setArrivalTime(lapsedTime);
                     pending.erase(pending.begin());
-                    controller.reDrawReady(this);
+                    controller.readyUp = true;
                 }
                 return NEWP;
             case 'b': case 'B':
@@ -337,6 +307,7 @@ unsigned short ProcessManager::inter(long &cont)
         blocked.push_back(*current);
         delete current;
         current = nullptr;
+        controller.current = nullptr;
         return INTER;
     }
     return CONTI;
@@ -350,7 +321,7 @@ void ProcessManager::pause(const bool& bcp)
         std::cout << Cursor::colorText(MORADO,
                         "Ejecucion pausada - Presione \"c\" para continuar")
                   << std::endl;
-        controller.printBCP(this);
+        controller.printBCP(lapsedTime);
     } else {
         Cursor::gotoxy(1, 4);
         std::cout << Cursor::colorText(MORADO,
