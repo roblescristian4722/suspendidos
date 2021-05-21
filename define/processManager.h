@@ -16,6 +16,9 @@
 #define MAX_BLOCKED_TIME 5
 #define NO_RESPONSE_TIME -1
 
+class Controller;
+class ProcessManager;
+
 enum ExecResult{
     CONTI = 0,
     INTER,
@@ -25,9 +28,45 @@ enum ExecResult{
     QUANTUM,
 };
 
+// Clase que funciona como controlador de arquitectura MVC para transferencia
+// de información. Contiene métodos para la impresión de ventanas y datos.
+class Controller
+{
+private:
+    friend class ProcessManager;
+
+    void initFrames(ProcessManager *pm);
+    void initStateColors(ProcessManager *pm);
+    void initStates(ProcessManager *pm);
+    // Se proveen datos para el frame de procesos bloqueados
+    void fillBlocked(ProcessManager *pm);
+    // Se proveen datos para el frame del proceso actual
+    void fillCurrent(ProcessManager *pm);
+    // Se proveen datos para el frame de procesos terminados
+    void fillFinished(ProcessManager *pm, Process &p);
+    // Se proveen datos para el frame de procesos listos
+    void fillReady(ProcessManager *pm, Process &p);
+    // Imprime en pantalla el BCP de los procesos registrados
+    void printBCP(ProcessManager *pm, bool finished = false);
+    // Vuelve a imprimir la ventana de procesos listos
+    void reDrawReady(ProcessManager *pm);
+    // Vuelve a imprimir la ventana de procesos terminados
+    void reDrawFinished(ProcessManager *pm);
+    // Inicializa las 3 ventanas para la ejecición de procesos
+    void printFrames(ProcessManager *pm, bool pend = false, bool act = false,
+                     bool term = false, bool bloq = false);
+
+public:
+    Controller();
+    ~Controller();
+};
+
+// Clase para la gestión de procesos
 class ProcessManager
 {
 private:
+    friend class Controller;
+
     unsigned long id;
     std::vector<Process> pending;
     std::vector<Process> ready;
@@ -46,6 +85,7 @@ private:
     unsigned int quantum;
     unsigned short jump;
     bool allBlocked;
+    Controller controller;
 
     // Establece el ID del Process, retorna true si el Process fue exitoso y 
     // retorna false en caso de que el ID sea incorrecto o ya esté en uso
@@ -60,9 +100,6 @@ private:
                        bool(Process::*metodo)(const std::string&,
                                               std::map<std::string,bool>*),
                        std::map<std::string, bool>* idsUsed);
-    // Inicializa las 3 ventanas para la ejecición de procesos
-    void printFrames(bool pend = false, bool act = false, bool term = false,
-                     bool bloq = false);
     // Genera tiempo aleatorio entre un rango de 6 a 15 segundos
     unsigned long generateTime();
     // Genera una opreración aleatoria
@@ -82,17 +119,10 @@ private:
     // Escucha el teclado y ejecuta uno de los posibles casos con
     // kbhit: i, p, c, e, b
     unsigned short keyListener(long& cont);
-    // Se proveen datos para el frame de procesos bloqueados
-    void fillBlocked();
-    // Se proveen datos para el frame del proceso actual
-    void fillCurrent();
-    // Se proveen datos para el frame de procesos terminados
-    void fillFinished(Process &p);
-    // Se proveen datos para el frame de procesos listos
-    void fillReady(Process &p);
     // Retorna true si es necesario crear un proceso vacío y retorna false en
     // caso contario
     bool dummyProcess();
+    void createDummyProcess(const long& remTime);
     // Carga de uno a uno los procesos nuevos en memoria (máximo 5 al mismo
     // tiempo) hasta que la cola de procesos nuevos esté vacía
     void pendingToReady();
@@ -104,12 +134,6 @@ private:
     // uno, si el contador de un proceso llega a cero se inserta en la cola de
     // listos
     void checkBlocked();
-    // Imprime en pantalla el BCP de los procesos registrados
-    void printBCP(bool finished = false);
-    // Vuelve a imprimir la ventana de procesos listos
-    void reDrawReady();
-    // Vuelve a imprimir la ventana de procesos terminados
-    void reDrawFinished();
 
 public :
     ProcessManager();

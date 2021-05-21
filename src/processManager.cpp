@@ -8,22 +8,9 @@ ProcessManager::ProcessManager()
     this->current = nullptr;
     this->lapsedTime = 0;
     this->lastId = 0;
-    this->states[&finished] = "Finalizado";
-    this->states[&ready] = "Listo";
-    this->states[&blocked] = "Bloqueado";
-    this->states[&pending] = "Nuevo";
-    this->stateColors[&finished] = CYAN;
-    this->stateColors[&ready] = VERDE;
-    this->stateColors[&blocked] = ROJO;
-    this->stateColors[&pending] = AMARILLO;
-    this->readyF.setFrame(1, FRAME_Y, FIELD_WIDTH * 3 + 2,
-                          MAX_SIZE_JOBS_FRAME + 2, AMARILLO);
-    this->currentF.setFrame(FIELD_WIDTH * 3 + 4, FRAME_Y, FIELD_WIDTH * 6, 6,
-                            VERDE);
-    this->finishedF.setFrame(FIELD_WIDTH * 9 + 5, FRAME_Y, FIELD_WIDTH * 4, 25,
-                             CYAN);
-    this->blockedF.setFrame(1, FRAME_Y + MAX_SIZE_JOBS_FRAME + 2,
-                            FIELD_WIDTH * 2 + 2, MAX_SIZE_JOBS_FRAME + 3, MORADO);
+    controller.initStateColors(this);
+    controller.initStates(this);
+    controller.initFrames(this);
 }
 
 ProcessManager::~ProcessManager()
@@ -43,74 +30,7 @@ const unsigned long& ProcessManager::getId() const
 { return this->id; }
 
 void ProcessManager::printFinished()
-{ printBCP(&finished); }
-
-void ProcessManager::printBCP(bool finished)
-{
-    std::vector<Process>* queue;
-    std::map<std::vector<Process>*, std::string>::iterator it;
-    for (it = states.begin(); it != states.end(); it++) {
-        queue = it->first;
-        if (finished)
-            queue = &this->finished;
-        for (size_t i = 0; i < queue->size(); ++i) {
-            std::cout << "ID: " << (*queue)[i].getId() << std::endl
-                      << "Estado: " << Cursor::colorText(stateColors[queue],
-                                                    states[queue]) << std::endl;
-            if (states[queue] != "Nuevo") {
-                if (states[queue] != "Finalizado")
-                    (*queue)[i].setWaitingTime(lapsedTime - (*queue)[i].getArrivalTime()
-                                               - (*queue)[i].getServiceTime());
-                std::cout << "Operacion: " << (*queue)[i].getOp() << std::endl
-                        << "Tiempo maximo estimado: " << (*queue)[i].getMaxTime()
-                        << std::endl
-                        << "Tiempo de llegada: " << (*queue)[i].getArrivalTime()
-                        << std::endl
-                        << "Tiempo de servicio: " << (*queue)[i].getServiceTime()
-                        << std::endl;
-                std::cout << "Tiempo de espera: " << (*queue)[i].getWaitingTime()
-                          << std::endl;
-                if ((*queue)[i].getResponseTime() != NO_RESPONSE_TIME)
-                    std::cout << "Tiempo de respuesta: " << (*queue)[i].getResponseTime()
-                            << std::endl;
-                if (states[queue] == "Finalizado")
-                    std::cout << "Resultado: " << (*queue)[i].getResult() << std::endl
-                            << "Tiempo de finalizacion: " << (*queue)[i].getFinishTime()
-                            << std::endl
-                            << "Tiempo de retorno: " << (*queue)[i].getReturnTime()
-                            << std::endl;
-                if (states[queue] == "Bloqueado")
-                    std::cout << "Tiempo bloqueado restante: "
-                              << (*queue)[i].getBlockedTime() << std::endl;
-            }
-            std::cout << std::endl;
-        }
-        if (finished)
-            break;
-    }   
-    if (current != nullptr) {
-        if (current->getId()) {
-            std::cout << "ID: " << current->getId() << std::endl
-                    << "Estado:" << Cursor::colorText(MORADO, "En ejecucion")
-                    << std::endl
-                    << "Operacion: " << current->getOp() << std::endl
-                    << "Tiempo maximo estimado: " << current->getMaxTime()
-                    << std::endl
-                    << "Tiempo restante: " << current->getRemTime()
-                    << std::endl
-                    << "Tiempo de llegada: " << current->getArrivalTime()
-                    << std::endl;
-            current->setWaitingTime(lapsedTime - current->getArrivalTime()
-                                    - current->getServiceTime());
-            std::cout << "Tiempo de espera: " << current->getWaitingTime()
-                    << std::endl
-                    << "Tiempo de servicio: " << current->getServiceTime()
-                    << std::endl
-                    << "Tiempo de respuesta: " << current->getResponseTime()
-                    << std::endl << std::endl;
-        }
-    }
-}
+{ controller.printBCP(this, true); }
 
 void ProcessManager::setId(const unsigned long &id)
 { this->id = id; }
@@ -242,7 +162,7 @@ void ProcessManager::checkBlocked()
     while (it < blocked.end()) {
         if (it->getBlockedTime() == 1) {
             ready.push_back(*it);
-            fillReady(*it);
+            controller.fillReady(this,*it);
             blocked.erase(it);
         } else {
             it->setBlockedTime(it->getBlockedTime() - 1);
@@ -251,42 +171,52 @@ void ProcessManager::checkBlocked()
     }
 }
 
+void ProcessManager::createDummyProcess(const long &execTime)
+{
+    current = new Process;
+    current->setMaxTime(std::to_string(execTime));
+    current->setId(std::to_string(0));
+    current->setRemTime(execTime);
+    allBlocked = true;
+    jump = CONTI;
+}
+
 void ProcessManager::executeProcess(long execTime)
 {
     std::string auxStr = "";
     while (execTime--) {
         allBlocked = false;
+        // Se asigna un tiempo de respuesta si aún no se ha asignado uno
         if (current->getResponseTime() == NO_RESPONSE_TIME)
             current->setResponseTime(lapsedTime - current->getArrivalTime());
         jump = keyListener(execTime);
         if (jump == BCP) {
             currentF.drawFrame();
             blockedF.drawFrame();
-            reDrawReady();
-            reDrawFinished();
+            controller.reDrawReady(this);
+            controller.reDrawFinished(this);
         }
         // Se genera proceso extra si ya hay 5 procesos bloqueados
         if (dummyProcess() && !allBlocked){
             execTime = blocked.begin()->getBlockedTime();
-            current = new Process;
-            current->setMaxTime(std::to_string(execTime));
-            current->setId(std::to_string(0));
-            current->setRemTime(execTime);
-            allBlocked = true;
+            createDummyProcess(execTime);
             execTime--;
-            jump = CONTI;
         }
-        printFrames(false, false, false, true);
-        fillBlocked();
+
+        controller.printFrames(this, false, false, false, true);
+        controller.fillBlocked(this);
         currentF.rmContent();
+
         if (jump != ERROR && jump != INTER) {
-            printFrames(false, true);
-            fillCurrent();
+            controller.printFrames(this, false, true);
+            controller.fillCurrent(this);
         }
+
         auxStr = "Procesos nuevos: " + std::to_string(pending.size())
         + "\nTiempo transcurrido: " + std::to_string(ProcessManager::lapsedTime)
         + "\nValor del Quantum: " + std::to_string(quantum);
         Cursor::rmPrint(1, 2, auxStr);
+
         if (jump == INTER || jump == ERROR || (allBlocked && jump == NEWP && !pending.size()))
             break;
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -295,7 +225,7 @@ void ProcessManager::executeProcess(long execTime)
         current->setRemTime(execTime);
         current->setServiceTime(current->getServiceTime() + 1);
         current->setQuantum(current->getQuantum() + 1);
-        if (current->getQuantum() == quantum) {
+        if (current->getQuantum() == quantum && current->getId()) {
             jump = QUANTUM;
             break;
         }
@@ -311,18 +241,25 @@ void ProcessManager::execute()
     blockedF.drawFrame();
     finishedF.drawFrame();
     currentF.drawFrame();
-    printFrames(true, true, true, true);
+    controller.printFrames(this, true, true, true, true);
     while (processLeft()) {
-        jump = false;
+        jump = CONTI;
         allBlocked = false;
+
         pendingToReady();
-        current = new Process(ready.front());
+        if (ready.size()) {
+            current = new Process(ready.front());
+            ready.erase(ready.begin());
+        }
+        else
+            createDummyProcess(blocked.front().getBlockedTime());
         current->setQuantum(0);
-        ready.erase(ready.begin());
+
         readyF.rmContent();
-        printFrames(true);
+        controller.printFrames(this, true);
         for (size_t i = 0; i < ready.size(); ++i)
-            fillReady(ready[i]);
+            controller.fillReady(this,ready[i]);
+            
         executeProcess(current->getMaxTime() - current->getServiceTime());
         if (jump != INTER) {
             if (jump == QUANTUM && current->getRemTime())
@@ -335,7 +272,7 @@ void ProcessManager::execute()
                     current->setResponseTime(0);
                 if (jump != ERROR)
                     current->calculate();
-                fillFinished(*current);
+                controller.fillFinished(this, *current);
                 finished.push_back(*current);
             }
             delete current;
@@ -344,7 +281,7 @@ void ProcessManager::execute()
     }
     readyF.rmContent();
     currentF.rmContent();
-    printFrames(true, true);
+    controller.printFrames(this, true, true);
     Cursor::showCursor();
 }
 
@@ -371,7 +308,7 @@ unsigned short ProcessManager::keyListener(long &cont)
                     ready.push_back(*pending.begin());
                     ready.back().setArrivalTime(lapsedTime);
                     pending.erase(pending.begin());
-                    reDrawReady();
+                    controller.reDrawReady(this);
                 }
                 return NEWP;
             case 'b': case 'B':
@@ -413,7 +350,7 @@ void ProcessManager::pause(const bool& bcp)
         std::cout << Cursor::colorText(MORADO,
                         "Ejecucion pausada - Presione \"c\" para continuar")
                   << std::endl;
-        printBCP();
+        controller.printBCP(this);
     } else {
         Cursor::gotoxy(1, 4);
         std::cout << Cursor::colorText(MORADO,
@@ -429,74 +366,5 @@ void ProcessManager::pause(const bool& bcp)
                 break;
             }
         }
-    }
-}
-
-void ProcessManager::fillBlocked()
-{
-    for (size_t i = 0; i < blocked.size(); ++i) {
-        blockedF.print(std::to_string(blocked[i].getId()), BLANCO, false,
-                FIELD_WIDTH);
-        blockedF.print(std::to_string(blocked[i].getBlockedTime()), BLANCO, true,
-                FIELD_WIDTH);
-    }
-}
-
-void ProcessManager::reDrawFinished() {
-    finishedF.drawFrame();
-    printFrames(false, false, true);
-    for (size_t i = 0; i < finished.size(); ++i)
-        fillFinished(finished[i]);
-}
-
-void ProcessManager::reDrawReady() {
-    readyF.drawFrame();
-    printFrames(true);
-    for (size_t i = 0; i < ready.size(); ++i)
-        fillReady(ready[i]);
-}
-
-void ProcessManager::fillCurrent()
-{
-    currentF.print(std::to_string(current->getId()), BLANCO, false, FIELD_WIDTH);
-    currentF.print(std::to_string(current->getQuantum()), BLANCO, false, FIELD_WIDTH);
-    currentF.print(current->getOp(), BLANCO, false, FIELD_WIDTH);
-    currentF.print(std::to_string(current->getMaxTime()), BLANCO, false, FIELD_WIDTH);
-    currentF.print(std::to_string(current->getRemTime()), BLANCO, false, FIELD_WIDTH);
-    currentF.print(std::to_string(current->getServiceTime()), BLANCO, true, FIELD_WIDTH);
-}
-
-void ProcessManager::fillFinished(Process &p)
-{
-    finishedF.print(std::to_string(p.getId()), BLANCO, false, FIELD_WIDTH);
-    finishedF.print(p.getOp(), BLANCO, false, FIELD_WIDTH);
-    finishedF.print(std::to_string(p.getMaxTime()), BLANCO, false, FIELD_WIDTH);
-    finishedF.print(p.getResult(), BLANCO, true, FIELD_WIDTH);
-}
-
-void ProcessManager::fillReady(Process &p)
-{
-    readyF.print(std::to_string(p.getId()), BLANCO, false, FIELD_WIDTH);
-    readyF.print(std::to_string(p.getMaxTime()), BLANCO, false, FIELD_WIDTH);
-    readyF.print(std::to_string(p.getServiceTime()), BLANCO, true, FIELD_WIDTH);
-}
-
-void ProcessManager::printFrames(bool rdy, bool act, bool fnshd, bool bloq)
-{
-    if (rdy) {
-        readyF.print("Procesos listos:", BLANCO, true);
-        readyF.print("ID      TME     TMT", BLANCO, true);
-    }
-    if (act) {
-        currentF.update("Proceso en ejecucion:", BLANCO, true);
-        currentF.print("ID      QTM     OP      TME     TMR     TMT", BLANCO, true);
-    }
-    if (fnshd){
-        finishedF.print("Procesos terminados:", BLANCO, true);
-        finishedF.print("ID      OP      TME     RES", BLANCO, true);
-    }
-    if (bloq) {
-        blockedF.update("Procesos bloqueados:", BLANCO, true);
-        blockedF.print("ID      TRB", BLANCO, true);
     }
 }
