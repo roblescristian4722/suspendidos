@@ -5,7 +5,8 @@ Controller::Controller(std::vector<Process> *pending, std::vector<Process> *read
                        std::vector<Process> *finished, std::vector<Process> *blocked,
                        Process *current,
                        std::map<std::vector<Process> *, std::string> *states,
-                       std::map<std::vector<Process> *, char> *stateColors)
+                       std::map<std::vector<Process> *, char> *stateColors,
+                       unsigned long *lapsedTime, unsigned int *quantum)
 {
     this->pending = pending;
     this->ready = ready;
@@ -30,6 +31,8 @@ Controller::Controller(std::vector<Process> *pending, std::vector<Process> *read
     (*states)[&(*ready)] = "Listo";
     (*states)[&(*blocked)] = "Bloqueado";
     (*states)[&(*pending)] = "Nuevo";
+    this->lapsedTime = lapsedTime;
+    this->quantum = quantum;
     readyUp = false;
     finishedUp = false;
     blockedUp = false;
@@ -209,6 +212,7 @@ void Controller::endFrames()
 
 void Controller::printUpdated()
 {
+    printCounters(pending->size(), *lapsedTime, *quantum);
     if (readyUp) {
         printFrames(true);
         for (size_t i = 0; i < ready->size(); ++i)

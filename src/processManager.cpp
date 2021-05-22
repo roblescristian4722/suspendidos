@@ -9,7 +9,7 @@ ProcessManager::ProcessManager()
     this->lapsedTime = 0;
     this->lastId = 0;
     controller = Controller(&pending, &ready, &finished, &blocked, nullptr,
-                            &states, &stateColors);
+                            &states, &stateColors, &lapsedTime, &quantum);
 }
 
 ProcessManager::~ProcessManager()
@@ -187,17 +187,13 @@ void ProcessManager::executeProcess(long execTime)
         if (current->getResponseTime() == NO_RESPONSE_TIME)
             current->setResponseTime(lapsedTime - current->getArrivalTime());
         jump = keyListener(execTime);
-        if (jump == BCP)
-            controller.redrawBCP();
-        else if (jump == INTER)
-            controller.blockedUp = true;
         // Se genera proceso extra si ya hay 5 procesos bloqueados
         if (dummyProcess() && !allBlocked){
             execTime = blocked.begin()->getBlockedTime();
             createDummyProcess(execTime);
             execTime--;
         }
-        controller.printCounters(pending.size(), lapsedTime, quantum);
+        controller.printUpdated();
         if (jump == INTER || jump == ERROR || (allBlocked && jump == NEWP && !pending.size()))
             break;
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -262,6 +258,7 @@ unsigned short ProcessManager::keyListener(long &cont)
         input = getch();
         switch (input) {
             case 'i': case 'I':
+                controller.blockedUp = true;
                 return inter(cont);
             case 'p': case 'P':
                 pause();
@@ -280,9 +277,11 @@ unsigned short ProcessManager::keyListener(long &cont)
                     pending.erase(pending.begin());
                     controller.readyUp = true;
                 }
+                controller.printUpdated();
                 return NEWP;
             case 'b': case 'B':
                 pause(true);
+                controller.redrawBCP();
                 return BCP;
             default:
                 return CONTI;

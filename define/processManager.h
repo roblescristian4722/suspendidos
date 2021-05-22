@@ -38,6 +38,8 @@ private:
     bool readyUp;
     bool finishedUp;
     bool blockedUp;
+    unsigned long *lapsedTime;
+    unsigned int *quantum;
     Frame readyF;
     Frame finishedF;
     Frame currentF;
@@ -77,7 +79,8 @@ public:
                std::vector<Process> *finished, std::vector<Process> *blocked,
                Process *current,
                std::map<std::vector<Process> *, std::string> *states,
-               std::map<std::vector<Process> *, char> *stateColors);
+               std::map<std::vector<Process> *, char> *stateColors,
+               unsigned long *lapsedTime, unsigned int *quantum);
     ~Controller();
 };
 
