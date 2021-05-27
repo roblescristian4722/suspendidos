@@ -102,27 +102,29 @@ void Controller::printBCP(const unsigned long lapsedTime, bool fnsh)
         if (fnsh)
             break;
     }
+    
     // Impresión del proceso en ejecución
-    if (current->getId()) {
-        std::cout << "ID: " << current->getId() << std::endl
-                << "Estado:" << Cursor::colorText(MORADO, "En ejecucion")
-                << std::endl
-                << "Operacion: " << current->getOp() << std::endl
-                << "Tiempo maximo estimado: " << current->getMaxTime()
-                << std::endl
-                << "Tiempo restante: " << current->getRemTime()
-                << std::endl
-                << "Tiempo de llegada: " << current->getArrivalTime()
-                << std::endl;
-        current->setWaitingTime(lapsedTime - current->getArrivalTime()
-                                - current->getServiceTime());
-        std::cout << "Tiempo de espera: " << current->getWaitingTime()
-                << std::endl
-                << "Tiempo de servicio: " << current->getServiceTime()
-                << std::endl
-                << "Tiempo de respuesta: " << current->getResponseTime()
-                << std::endl << std::endl;
-    }
+    if (fnsh)
+        if (current->getId()) {
+            std::cout << "ID: " << current->getId() << std::endl
+                    << "Estado:" << Cursor::colorText(MORADO, "En ejecucion")
+                    << std::endl
+                    << "Operacion: " << current->getOp() << std::endl
+                    << "Tiempo maximo estimado: " << current->getMaxTime()
+                    << std::endl
+                    << "Tiempo restante: " << current->getRemTime()
+                    << std::endl
+                    << "Tiempo de llegada: " << current->getArrivalTime()
+                    << std::endl;
+            current->setWaitingTime(lapsedTime - current->getArrivalTime()
+                                    - current->getServiceTime());
+            std::cout << "Tiempo de espera: " << current->getWaitingTime()
+                    << std::endl
+                    << "Tiempo de servicio: " << current->getServiceTime()
+                    << std::endl
+                    << "Tiempo de respuesta: " << current->getResponseTime()
+                    << std::endl << std::endl;
+        }
     std::cout.flush();
 }
 
