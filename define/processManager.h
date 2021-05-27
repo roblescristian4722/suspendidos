@@ -6,7 +6,15 @@
 #include <thread>
 #include <map>
 #include <regex>
-#include <conio.h>
+#if defined(_WIN32) || defined(_WIN64)
+    #include <conio.h>
+    #define GETCH(X) X = getch()
+#else
+    #include "kbhitLinux.h"
+    #define GETCH(X) set_echo();\
+                     X = getchar();\
+                     unset_echo()
+#endif
 #include "process.h"
 #include "cursor.h"
 #define FIELD_WIDTH 8

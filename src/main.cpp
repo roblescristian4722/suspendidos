@@ -19,8 +19,7 @@ int main()
     std::cout << Cursor::colorText(
                  VERDE, "Fin de la ejecucion, presione ENTER para mostrar tiempos")
               << std::endl;
-    std::cin.get();std::cin.get();
-    m.printFinished();
-    std::cin.get();
+    /* std::cin.get();std::cin.get(); */
+    /* m.printFinished(); */
     return 0;
 }

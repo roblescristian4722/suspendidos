@@ -1,4 +1,4 @@
-#include "../define/ProcessManager.h"
+#include "../define/processManager.h"
 
 std::map<std::string, bool> ProcessManager::idsUsed;
 
@@ -255,7 +255,7 @@ unsigned short ProcessManager::keyListener(long &cont)
 {
     unsigned char input;
     if (kbhit()) {
-        input = getch();
+        GETCH(input);
         switch (input) {
             case 'i': case 'I':
                 controller.blockedUp = true;
@@ -328,7 +328,7 @@ void ProcessManager::pause(const bool& bcp)
     }    
     while (1) {
         if (kbhit()) {
-            input = getch();
+            GETCH(input);
             if (input == 'c' || input == 'C') {
                 Cursor::rmLine();
                 if (bcp)

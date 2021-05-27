@@ -11,7 +11,9 @@ include_directories(define)
 set(SOURCE src/main.cpp
             src/cursor.cpp
             src/process.cpp
-            src/processManager.cpp)
+            src/processManager.cpp
+            src/kbhitLinux.cpp
+            src/controller.cpp)
 
 
 # Añandir el ejecutable

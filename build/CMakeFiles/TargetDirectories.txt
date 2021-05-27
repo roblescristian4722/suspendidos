@@ -1,0 +1,3 @@
+/home/kristo/Documents/round_robin/build/CMakeFiles/rebuild_cache.dir
+/home/kristo/Documents/round_robin/build/CMakeFiles/edit_cache.dir
+/home/kristo/Documents/round_robin/build/CMakeFiles/procesamientoPorLotes.dir
