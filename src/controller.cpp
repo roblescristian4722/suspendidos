@@ -71,14 +71,14 @@ void Controller::printBCP(const unsigned long lapsedTime, bool fnsh)
             std::cout << "ID: " << (*queue)[i].getId() << std::endl
                       << "Estado: " << Cursor::colorText((*stateColors)[queue],
                                                     (*states)[queue]) << std::endl;
+            std::cout << "Operacion: " << (*queue)[i].getOp() << std::endl
+                    << "Tiempo maximo estimado: " << (*queue)[i].getMaxTime()
+                    << std::endl;
             if ((*states)[queue] != "Nuevo") {
                 if ((*states)[queue] != "Finalizado")
                     (*queue)[i].setWaitingTime(lapsedTime - (*queue)[i].getArrivalTime()
                                                - (*queue)[i].getServiceTime());
-                std::cout << "Operacion: " << (*queue)[i].getOp() << std::endl
-                        << "Tiempo maximo estimado: " << (*queue)[i].getMaxTime()
-                        << std::endl
-                        << "Tiempo de llegada: " << (*queue)[i].getArrivalTime()
+                std::cout << "Tiempo de llegada: " << (*queue)[i].getArrivalTime()
                         << std::endl
                         << "Tiempo de servicio: " << (*queue)[i].getServiceTime()
                         << std::endl;
@@ -104,7 +104,7 @@ void Controller::printBCP(const unsigned long lapsedTime, bool fnsh)
     }
     
     // Impresión del proceso en ejecución
-    if (fnsh)
+    if (current != nullptr)
         if (current->getId()) {
             std::cout << "ID: " << current->getId() << std::endl
                     << "Estado:" << Cursor::colorText(MORADO, "En ejecucion")
