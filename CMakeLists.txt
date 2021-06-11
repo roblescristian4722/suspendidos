@@ -3,7 +3,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 # Nombre del proyecto y versión (la versión corresponde al número de programa
 # a entregar para la materia)
-project(procesamientoPorLotes VERSION 5.0)
+project(paginacionSimple VERSION 6.0)
 
 # Incluye el directorio de headers
 include_directories(define)
@@ -17,4 +17,6 @@ set(SOURCE src/main.cpp
 
 
 # Añandir el ejecutable
-add_executable(procesamientoPorLotes ${SOURCE})
+add_executable(${PROJECT_NAME} ${SOURCE})
+target_link_libraries(${PROJECT_NAME} -Wall
+                                      -static)

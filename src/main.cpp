@@ -11,7 +11,7 @@ bool test(int n)
 { return n; }
 
 int main()
-{ 
+{
     ProcessManager m;
     m.init();
 

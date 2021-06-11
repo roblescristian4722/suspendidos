@@ -8,8 +8,9 @@ ProcessManager::ProcessManager()
     this->current = nullptr;
     this->lapsedTime = 0;
     this->lastId = 0;
-    controller = Controller(&pending, &ready, &finished, &blocked, nullptr,
+    this->controller = Controller(&pending, &ready, &finished, &blocked, nullptr,
                             &states, &stateColors, &lapsedTime, &quantum);
+    this->memory[MEMORY_PARTITIONS] = { nullptr };
 }
 
 ProcessManager::~ProcessManager()
@@ -337,4 +338,11 @@ void ProcessManager::pause(const bool& bcp)
             }
         }
     }
+}
+
+bool ProcessManager::pushToMemory()
+{
+    for (short i = 0; i < MEMORY_PARTITIONS; ++i) {
+    }
+    return false;
 }

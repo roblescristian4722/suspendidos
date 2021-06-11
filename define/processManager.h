@@ -19,10 +19,15 @@
 #include "cursor.h"
 #define FIELD_WIDTH 8
 #define MAX_READY_JOB_AMOUNT 4
-#define FRAME_Y 5
-#define MAX_SIZE_JOBS_FRAME 8
+#define FRAME_Y 4
+#define MAX_SIZE_JOBS_FRAME 24
 #define MAX_BLOCKED_TIME 5
 #define NO_RESPONSE_TIME -1
+#define PARTITION_SIZE 4
+#define MAX_PAGE_SIZE 25
+#define MIN_PAGE_SIZE 5
+#define MEMORY_SIZE 180
+static const short MEMORY_PARTITIONS = MEMORY_SIZE / PARTITION_SIZE;
 
 class Controller;
 class ProcessManager;
@@ -42,7 +47,7 @@ class Controller
 {
 private:
     friend class ProcessManager;
-
+    
     bool readyUp;
     bool finishedUp;
     bool blockedUp;
@@ -52,6 +57,7 @@ private:
     Frame finishedF;
     Frame currentF;
     Frame blockedF;
+    Frame memoryF;
     std::vector<Process> *pending;
     std::vector<Process> *ready;
     Process *current;
@@ -59,6 +65,7 @@ private:
     std::vector<Process> *blocked;
     std::map<std::vector<Process> *, std::string> *states;
     std::map<std::vector<Process> *, char> *stateColors;
+    std::vector<std::pair<short, short>> availableProcesses;
 
     // Se proveen datos para el frame de procesos bloqueados
     void fillBlocked();
@@ -68,11 +75,13 @@ private:
     void fillFinished(Process &p);
     // Se proveen datos para el frame de procesos listos
     void fillReady(Process &p);
+    // Se proveen datos para el frame de procesos listos
+    void fillMemory(Process &p);
     // Imprime en pantalla el BCP de los procesos registrados
     void printBCP(const unsigned long lapsedTime, bool finished = false);
     // Inicializa las 3 ventanas para la ejecición de procesos
     void printFrames(bool pend = false, bool act = false,
-                     bool term = false, bool bloq = false);
+                     bool term = false, bool bloq = false, bool memory = false);
     // Vuelve a dibujar los Frames ready y blocked después de mostrar el BCP
     void redrawBCP();
     void printCounters(const size_t &pending, const size_t &lapsedTime,
@@ -111,6 +120,7 @@ private:
     unsigned int quantum;
     unsigned short jump;
     bool allBlocked;
+    Process* memory[MEMORY_PARTITIONS];
     Controller controller;
 
     // Establece el ID del Process, retorna true si el Process fue exitoso y 
@@ -160,6 +170,7 @@ private:
     // uno, si el contador de un proceso llega a cero se inserta en la cola de
     // listos
     void checkBlocked();
+    bool pushToMemory();
 
 public :
     ProcessManager();

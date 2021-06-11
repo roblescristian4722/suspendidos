@@ -21,8 +21,11 @@ Controller::Controller(std::vector<Process> *pending, std::vector<Process> *read
                       VERDE);
     finishedF.setFrame(FIELD_WIDTH * 9 + 5, FRAME_Y, FIELD_WIDTH * 4, 25,
                        CYAN);
-    blockedF.setFrame(1, FRAME_Y + MAX_SIZE_JOBS_FRAME + 2,
-                      FIELD_WIDTH * 2 + 2, MAX_SIZE_JOBS_FRAME + 3, MORADO);
+    blockedF.setFrame(FIELD_WIDTH * 3 + 15, FRAME_Y + 7,
+                      FIELD_WIDTH * 3 + 2, MAX_SIZE_JOBS_FRAME + 3, MORADO);
+    memoryF.setFrame(FIELD_WIDTH * 9 + 7 + (FIELD_WIDTH * 4), FRAME_Y,
+                      FIELD_WIDTH * 4 + 2, MEMORY_PARTITIONS, AZUL);
+
     (*stateColors)[&(*finished)] = CYAN;
     (*stateColors)[&(*ready)] = VERDE;
     (*stateColors)[&(*blocked)] = ROJO;
@@ -132,7 +135,7 @@ void Controller::fillBlocked()
 {
     for (size_t i = 0; i < (*blocked).size(); ++i) {
         blockedF.print(std::to_string((*blocked)[i].getId()), BLANCO, false,
-                FIELD_WIDTH);
+                FIELD_WIDTH + 3);
         blockedF.print(std::to_string((*blocked)[i].getBlockedTime()), BLANCO, true,
                 FIELD_WIDTH);
     }
@@ -163,7 +166,12 @@ void Controller::fillReady(Process &p)
     readyF.print(std::to_string(p.getServiceTime()), BLANCO, true, FIELD_WIDTH);
 }
 
-void Controller::printFrames(bool rdy, bool act, bool fnshd, bool bloq)
+void Controller::fillMemory(Process &p)
+{
+    memoryF.print("");
+}
+
+void Controller::printFrames(bool rdy, bool act, bool fnshd, bool bloq, bool memory)
 {
     if (rdy) {
         readyF.update("Procesos listos:", BLANCO, true);
@@ -179,7 +187,11 @@ void Controller::printFrames(bool rdy, bool act, bool fnshd, bool bloq)
     }
     if (bloq) {
         blockedF.update("Procesos bloqueados:", BLANCO, true);
-        blockedF.print("ID      TRB", BLANCO, true);
+        blockedF.print("ID         TRB", BLANCO, true);
+    }
+    if (memory) {
+        memoryF.update("Tabla de paginas", BLANCO, true);
+        memoryF.print("MARCO   EO      ID      ESTADO", BLANCO, true);
     }
 }
 
@@ -201,7 +213,8 @@ void Controller::initFrames()
     blockedF.drawFrame();
     finishedF.drawFrame();
     currentF.drawFrame();
-    printFrames(true, true, true, true);
+    memoryF.drawFrame();
+    printFrames(true, true, true, true, true);
 }
 
 void Controller::endFrames()
