@@ -4,17 +4,15 @@ Controller::Controller(){}
 Controller::Controller(std::vector<Process> *pending, std::vector<Process> *ready,
                        std::vector<Process> *finished, std::vector<Process> *blocked,
                        Process *current,
-                       std::map<std::vector<Process> *, std::string> *states,
-                       std::map<std::vector<Process> *, char> *stateColors,
-                       unsigned long *lapsedTime, unsigned int *quantum)
+                       unsigned long *lapsedTime, unsigned int *quantum,
+                       Page (*memory)[MEMORY_PARTITIONS])
 {
     this->pending = pending;
     this->ready = ready;
     this->finished = finished;
     this->blocked = blocked;
-    this->states = states;
     this->current = current;
-    this->stateColors = stateColors;
+    this->memory = memory;
     readyF.setFrame(1, FRAME_Y, FIELD_WIDTH * 3 + 2,
                     MAX_SIZE_JOBS_FRAME + 2, AMARILLO);
     currentF.setFrame(FIELD_WIDTH * 3 + 4, FRAME_Y, FIELD_WIDTH * 6, 6,
@@ -26,20 +24,21 @@ Controller::Controller(std::vector<Process> *pending, std::vector<Process> *read
     memoryF.setFrame(FIELD_WIDTH * 9 + 7 + (FIELD_WIDTH * 4), FRAME_Y,
                       FIELD_WIDTH * 4 + 2, MEMORY_PARTITIONS, AZUL);
 
-    (*stateColors)[&(*finished)] = CYAN;
-    (*stateColors)[&(*ready)] = VERDE;
-    (*stateColors)[&(*blocked)] = ROJO;
-    (*stateColors)[&(*pending)] = AMARILLO;
-    (*states)[&(*finished)] = "Finalizado";
-    (*states)[&(*ready)] = "Listo";
-    (*states)[&(*blocked)] = "Bloqueado";
-    (*states)[&(*pending)] = "Nuevo";
+    stateColors[&(*finished)] = CYAN;
+    stateColors[&(*ready)] = VERDE;
+    stateColors[&(*blocked)] = ROJO;
+    stateColors[&(*pending)] = AMARILLO;
+    states[&(*finished)] = "Finalizado";
+    states[&(*ready)] = "Listo";
+    states[&(*blocked)] = "Bloqueado";
+    states[&(*pending)] = "Nuevo";
     this->lapsedTime = lapsedTime;
     this->quantum = quantum;
     readyUp = false;
     finishedUp = false;
     blockedUp = false;
     finishedUp = false;
+    memoryUp = false;
 }
 
 Controller::~Controller(){}
@@ -65,20 +64,20 @@ void Controller::printBCP(const unsigned long lapsedTime, bool fnsh)
     std::vector<Process>* queue;
     std::map<std::vector<Process>*, std::string>::iterator it;
     // Se itera por cada estado distinto a "en ejecución"
-    for (it = (*states).begin(); it != (*states).end(); it++) {
+    for (it = states.begin(); it != states.end(); it++) {
         queue = it->first;
         if (fnsh)
             queue = &(*finished);
         // Se itera por cada proceso
         for (size_t i = 0; i < queue->size(); ++i) {
             std::cout << "ID: " << (*queue)[i].getId() << std::endl
-                      << "Estado: " << Cursor::colorText((*stateColors)[queue],
-                                                    (*states)[queue]) << std::endl;
+                      << "Estado: " << Cursor::colorText(stateColors[queue],
+                                                    states[queue]) << std::endl;
             std::cout << "Operacion: " << (*queue)[i].getOp() << std::endl
                     << "Tiempo maximo estimado: " << (*queue)[i].getMaxTime()
                     << std::endl;
-            if ((*states)[queue] != "Nuevo") {
-                if ((*states)[queue] != "Finalizado")
+            if (states[queue] != "Nuevo") {
+                if (states[queue] != "Finalizado")
                     (*queue)[i].setWaitingTime(lapsedTime - (*queue)[i].getArrivalTime()
                                                - (*queue)[i].getServiceTime());
                 std::cout << "Tiempo de llegada: " << (*queue)[i].getArrivalTime()
@@ -90,13 +89,13 @@ void Controller::printBCP(const unsigned long lapsedTime, bool fnsh)
                 if ((*queue)[i].getResponseTime() != NO_RESPONSE_TIME)
                     std::cout << "Tiempo de respuesta: " << (*queue)[i].getResponseTime()
                             << std::endl;
-                if ((*states)[queue] == "Finalizado")
+                if (states[queue] == "Finalizado")
                     std::cout << "Resultado: " << (*queue)[i].getResult() << std::endl
                             << "Tiempo de finalizacion: " << (*queue)[i].getFinishTime()
                             << std::endl
                             << "Tiempo de retorno: " << (*queue)[i].getReturnTime()
                             << std::endl;
-                if ((*states)[queue] == "Bloqueado")
+                if (states[queue] == "Bloqueado")
                     std::cout << "Tiempo bloqueado restante: "
                               << (*queue)[i].getBlockedTime() << std::endl;
             }
@@ -166,9 +165,19 @@ void Controller::fillReady(Process &p)
     readyF.print(std::to_string(p.getServiceTime()), BLANCO, true, FIELD_WIDTH);
 }
 
-void Controller::fillMemory(Process &p)
+void Controller::fillMemory(const short &f, const Page &p)
 {
-    memoryF.print("");
+    memoryF.print(std::to_string(f), BLANCO, false, FIELD_WIDTH);
+    memoryF.print(std::to_string(p.size) + "/" + std::to_string(PARTITION_SIZE),
+                  BLANCO, false, FIELD_WIDTH);
+    if (p.id){
+        memoryF.print(std::to_string(p.id), BLANCO, false, FIELD_WIDTH);
+        memoryF.print(states[p.state], BLANCO, true);
+    }
+    else {
+        memoryF.print("libre", BLANCO, false, FIELD_WIDTH);
+        memoryF.print("-", BLANCO, true);
+    }
 }
 
 void Controller::printFrames(bool rdy, bool act, bool fnshd, bool bloq, bool memory)
@@ -243,6 +252,9 @@ void Controller::printUpdated()
         fillFinished(finished->back());
         finishedUp = false;
     }
+    if (memoryUp)
+        for (short i = 0; i < MEMORY_PARTITIONS; ++i)
+            fillMemory(i, (*memory)[i]);
     if (current != nullptr) {
         printFrames(false, true);
         fillCurrent();

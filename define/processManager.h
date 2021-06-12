@@ -6,6 +6,7 @@
 #include <thread>
 #include <map>
 #include <regex>
+#include <fstream>
 #if defined(_WIN32) || defined(_WIN64)
     #include <conio.h>
     #define GETCH(X) X = getch()
@@ -41,6 +42,15 @@ enum ExecResult{
     QUANTUM,
 };
 
+struct Page
+{ 
+    short id = 0;
+    std::vector<Process> *state;
+    short size;
+    Page(){}
+    Page(const short &id, std::vector<Process> *state, const short &size);
+};
+
 // Clase que funciona como controlador de arquitectura MVC para transferencia
 // de información. Contiene métodos para la impresión de ventanas y datos.
 class Controller
@@ -51,6 +61,7 @@ private:
     bool readyUp;
     bool finishedUp;
     bool blockedUp;
+    bool memoryUp;
     unsigned long *lapsedTime;
     unsigned int *quantum;
     Frame readyF;
@@ -63,8 +74,9 @@ private:
     Process *current;
     std::vector<Process> *finished;
     std::vector<Process> *blocked;
-    std::map<std::vector<Process> *, std::string> *states;
-    std::map<std::vector<Process> *, char> *stateColors;
+    std::map<std::vector<Process> *, std::string> states;
+    std::map<std::vector<Process> *, char> stateColors;
+    Page (*memory)[MEMORY_PARTITIONS];
     std::vector<std::pair<short, short>> availableProcesses;
 
     // Se proveen datos para el frame de procesos bloqueados
@@ -76,7 +88,7 @@ private:
     // Se proveen datos para el frame de procesos listos
     void fillReady(Process &p);
     // Se proveen datos para el frame de procesos listos
-    void fillMemory(Process &p);
+    void fillMemory(const short &f, const Page &p);
     // Imprime en pantalla el BCP de los procesos registrados
     void printBCP(const unsigned long lapsedTime, bool finished = false);
     // Inicializa las 3 ventanas para la ejecición de procesos
@@ -94,10 +106,8 @@ public:
     Controller();
     Controller(std::vector<Process> *pending, std::vector<Process> *ready,
                std::vector<Process> *finished, std::vector<Process> *blocked,
-               Process *current,
-               std::map<std::vector<Process> *, std::string> *states,
-               std::map<std::vector<Process> *, char> *stateColors,
-               unsigned long *lapsedTime, unsigned int *quantum);
+               Process *current, unsigned long *lapsedTime, unsigned int *quantum,
+               Page (*memory)[MEMORY_PARTITIONS]);
     ~Controller();
 };
 
@@ -112,34 +122,22 @@ private:
     Process* current;
     std::vector<Process> finished;
     std::vector<Process> blocked;
-    std::map<std::vector<Process>*, std::string> states;
-    std::map<std::vector<Process>*, char> stateColors;
     static std::map<std::string, bool> idsUsed;
     unsigned long lastId;
     unsigned long lapsedTime;
     unsigned int quantum;
     unsigned short jump;
     bool allBlocked;
-    Process* memory[MEMORY_PARTITIONS];
+    Page memory[MEMORY_PARTITIONS];
+    short emptyFrames;
     Controller controller;
 
-    // Establece el ID del Process, retorna true si el Process fue exitoso y 
-    // retorna false en caso de que el ID sea incorrecto o ya esté en uso
-    void obtainField(std::string msj, std::string msjError,
-                       Process& proc,
-                       bool(Process::*metodo)(const std::string&));
-    // Sobrecarga de capturar campo que tiene un parámetro extra en el que se
-    //
-    // brinda un map para verificar que el ID capturado sea único
-    void obtainField(std::string msj, std::string msjError,
-                       Process& proc,
-                       bool(Process::*metodo)(const std::string&,
-                                              std::map<std::string,bool>*),
-                       std::map<std::string, bool>* idsUsed);
     // Genera tiempo aleatorio entre un rango de 6 a 15 segundos
     unsigned long generateTime();
     // Genera una opreración aleatoria
     std::string generateOp();
+    // Genera el peso de un proceso de forma aleatoria
+    short generateSize();
     // Función genérica que llama a los setters de un Process, se ejecuta de
     // en un bucle hasta que el setter retorne true
     void obtainProcess(const unsigned long& cont);

@@ -2,6 +2,13 @@
 
 std::map<std::string, bool> ProcessManager::idsUsed;
 
+Page::Page(const short &id, std::vector<Process> *state, const short &size)
+{
+        this->id = id;
+        this->state = state;
+        this->size = size;
+}
+
 ProcessManager::ProcessManager()
 {
     srand(time(NULL));
@@ -9,8 +16,8 @@ ProcessManager::ProcessManager()
     this->lapsedTime = 0;
     this->lastId = 0;
     this->controller = Controller(&pending, &ready, &finished, &blocked, nullptr,
-                            &states, &stateColors, &lapsedTime, &quantum);
-    this->memory[MEMORY_PARTITIONS] = { nullptr };
+                            &lapsedTime, &quantum, &memory);
+    this->emptyFrames = MEMORY_PARTITIONS;
 }
 
 ProcessManager::~ProcessManager()
@@ -52,6 +59,8 @@ void ProcessManager::obtainProcess(const unsigned long& cont)
     aux.setOp(generateOp());
     // Captura de tiempo máximo
     aux.setMaxTime(std::to_string(generateTime()));
+    // Captura del tamaño del proceso
+    aux.setSize(generateSize());
     pending.push_back(aux);
 }
 
@@ -70,59 +79,11 @@ std::string ProcessManager::generateOp()
 unsigned long ProcessManager::generateTime()
 {
     const short maxTmp = 10;
-    unsigned long tmp = 1;
-    tmp = (rand() % maxTmp) + 6;
-    return tmp;
+    return (rand() % maxTmp) + 6;
 }
 
-void ProcessManager::obtainField(std::string msj, std::string msjError,
-                         Process& proc,
-                         bool(Process::*metodo)(const std::string&,
-                                                std::map<std::string,bool>*),
-                         std::map<std::string, bool>* idsUsed)
-{
-    std::string aux;
-    bool once = false;
-    std::cout << Cursor::Cursor::colorText(VERDE, msj);
-    while(1) {
-        std::getline(std::cin, aux);
-        // Si el input es correcto rompemos el búcle infinito
-        if ((proc.*metodo)(aux, idsUsed))
-            break;
-        if (!once) {
-            once = true;
-            Cursor::rmLine();
-        }
-        else
-            Cursor::rmLine(2);
-        std::cout << Cursor::Cursor::colorText(ROJO, msjError, true)
-                  << std::endl;
-        std::cout << Cursor::Cursor::colorText(VERDE, msj);
-    }
-}
-
-void ProcessManager::obtainField(std::string msj, std::string msjError,
-                         Process& proc,
-                         bool(Process::*metodo)(const std::string&))
-{
-    std::string aux;
-    bool once = false;
-    std::cout << Cursor::colorText(VERDE, msj);
-    while(1) {
-        std::getline(std::cin, aux);
-        // Si el input es correcto rompemos el búcle infinito
-        if ((proc.*metodo)(aux))
-            break;
-        if (!once) {
-            once = true;
-            Cursor::rmLine();
-        }
-        else
-            Cursor::rmLine(2);
-        std::cout << Cursor::colorText(ROJO, msjError, true) << std::endl;
-        std::cout << Cursor::colorText(VERDE, msj);
-    }
-}
+short ProcessManager::generateSize()
+{ return (rand() % (MAX_PAGE_SIZE - MIN_PAGE_SIZE + 1)) + MIN_PAGE_SIZE; }
 
 size_t ProcessManager::onMemory()
 {
@@ -156,6 +117,8 @@ void ProcessManager::checkBlocked()
     while (it < blocked.end()) {
         if (it->getBlockedTime() == 1) {
             ready.push_back(*it);
+            for (short i = 0; i < blocked.back().getFrame().size(); ++i)
+                memory[blocked.back().getFrame()[i]].state = &ready;
             controller.readyUp = true;
             blocked.erase(it);
         } else {
@@ -217,7 +180,7 @@ void ProcessManager::execute()
     while (processLeft()) {
         jump = CONTI;
         allBlocked = false;
-        pendingToReady();
+        while(pushToMemory());
         if (ready.size()) {
             current = new Process(ready.front());
             controller.current = current;
@@ -227,6 +190,7 @@ void ProcessManager::execute()
             createDummyProcess(blocked.front().getBlockedTime());
         current->setQuantum(0);
         controller.readyUp = true;
+        controller.memoryUp = true;
         controller.printUpdated();
         executeProcess(current->getMaxTime() - current->getServiceTime());
         if (jump != INTER) {
@@ -261,7 +225,7 @@ unsigned short ProcessManager::keyListener(long &cont)
             case 'i': case 'I':
                 controller.blockedUp = true;
                 return inter(cont);
-            case 'p': case 'P':
+            case 'p': case 'P': case 'a': case 'A':
                 pause();
                 return CONTI;
             case 'e': case 'E':
@@ -272,12 +236,8 @@ unsigned short ProcessManager::keyListener(long &cont)
                 return CONTI;
             case 'n': case 'N':
                 obtainProcess(++lastId);
-                if (onMemory() <= MAX_READY_JOB_AMOUNT) {
-                    ready.push_back(*pending.begin());
-                    ready.back().setArrivalTime(lapsedTime);
-                    pending.erase(pending.begin());
+                if (pushToMemory())
                     controller.readyUp = true;
-                }
                 controller.printUpdated();
                 return NEWP;
             case 'b': case 'B':
@@ -293,18 +253,20 @@ unsigned short ProcessManager::keyListener(long &cont)
 
 bool ProcessManager::dummyProcess()
 {
-    if (blocked.size() == MAX_READY_JOB_AMOUNT + 1)
+    if (blocked.size() && !ready.size())
         return true;
-    if (!pending.size() && !ready.size() && blocked.size() && current == nullptr)
-        return true;
+    /* if (!pending.size() && !ready.size() && blocked.size() && current == nullptr) */
+    /*     return true; */
     return false;
 }
 
 unsigned short ProcessManager::inter(long &cont)
 {
-    if (blocked.size() <= MAX_READY_JOB_AMOUNT && current->getId()){
+    if (ready.size() && current->getId()){
         current->setBlockedTime(MAX_BLOCKED_TIME);
         blocked.push_back(*current);
+        for (short i = 0; i < blocked.back().getFrame().size(); ++i)
+            memory[blocked.back().getFrame()[i]].state = &blocked;
         delete current;
         current = nullptr;
         controller.current = nullptr;
@@ -342,7 +304,23 @@ void ProcessManager::pause(const bool& bcp)
 
 bool ProcessManager::pushToMemory()
 {
-    for (short i = 0; i < MEMORY_PARTITIONS; ++i) {
+    short size = pending.front().getSize();
+    short pages = size / PARTITION_SIZE;
+    std::vector<short> frames;
+    (size % PARTITION_SIZE) ? pages++ : pages;
+    if (pages <= emptyFrames && pages && pending.size()) {
+        for (short i = 0; i < MEMORY_PARTITIONS; ++i)
+            if (!memory[i].id) {
+                memory[i] = Page(pending.front().getId(), &ready, size);
+                size >= PARTITION_SIZE ? size -= PARTITION_SIZE : size = 0;
+                if (!(--pages))
+                    break;
+            }
+        ready.push_back(*pending.begin());
+        ready.back().setArrivalTime(lapsedTime);
+        ready.back().setFrame(frames);
+        pending.erase(pending.begin());
+        return true;
     }
     return false;
 }

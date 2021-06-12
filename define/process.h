@@ -2,6 +2,7 @@
 #define PROCESS_H
 #include <iostream>
 #include <regex>
+#include <vector>
 #include "cursor.h"
 
 class Process
@@ -21,6 +22,8 @@ private:
     unsigned short blockedTime;
     short responseTime;
     unsigned int quantum;
+    short size;
+    std::vector<short> frame;
 
 public:
     Process();
@@ -56,6 +59,10 @@ public:
     const short &getResponseTime() const;
     // Obtiene el quantum restante
     const unsigned int &getQuantum() const;
+    // Obtiene el espacio que requiere en memoria para cargarse
+    const short &getSize() const;
+    // Obtiene el estado en el que se encuentra el proceso
+    const std::vector<short> &getFrame() const;
 
     // Genera el resultado de la operación
     void calculate();
@@ -88,6 +95,11 @@ public:
     bool setMaxTime(const std::string& tiempoMax);
     // Asigna el quantum restante
     void setQuantum(const unsigned int &v);
+    // Asigna el tamaño que ocupara el proceso en memoria
+    void setSize(const short &v);
+    // Asigna el estado en el que se encuentra el proceso
+    void setFrame(const std::vector<short> &v);
+
 };
 
 #endif // PROCESS_H
