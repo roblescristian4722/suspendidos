@@ -114,11 +114,18 @@ bool ProcessManager::processLeft()
 void ProcessManager::checkBlocked()
 {
     std::vector<Process>::iterator it = blocked.begin();
+    bool exit = false;
     while (it < blocked.end()) {
         if (it->getBlockedTime() == 1) {
             ready.push_back(*it);
-            for (short i = 0; i < blocked.back().getFrame().size(); ++i)
-                memory[blocked.back().getFrame()[i]].state = &ready;
+            for (short i = 0; i < MEMORY_PARTITIONS; ++i) {
+                if (memory[i].id == ready.back().getId()) {
+                    memory[i].state = &ready;
+                    exit = true;
+                }
+                else if (exit)
+                    break;
+            }
             controller.readyUp = true;
             blocked.erase(it);
         } else {
@@ -262,11 +269,18 @@ bool ProcessManager::dummyProcess()
 
 unsigned short ProcessManager::inter(long &cont)
 {
+    bool exit = false;
     if (ready.size() && current->getId()){
         current->setBlockedTime(MAX_BLOCKED_TIME);
         blocked.push_back(*current);
-        for (short i = 0; i < blocked.back().getFrame().size(); ++i)
-            memory[blocked.back().getFrame()[i]].state = &blocked;
+        for (short i = 0; i < MEMORY_PARTITIONS; ++i) {
+            if (memory[i].id == blocked.back().getId()){
+                memory[i].state = &blocked;
+                exit = true;
+            }
+            else if (exit)
+                break;
+        }
         delete current;
         current = nullptr;
         controller.current = nullptr;
@@ -289,7 +303,7 @@ void ProcessManager::pause(const bool& bcp)
         std::cout << Cursor::colorText(MORADO,
                             "Ejecucion pausada - Presione \"c\" para continuar");
     }    
-    while (1) {
+    while (true) {
         if (kbhit()) {
             GETCH(input);
             if (input == 'c' || input == 'C') {
@@ -311,8 +325,10 @@ bool ProcessManager::pushToMemory()
     if (pages <= emptyFrames && pages && pending.size()) {
         for (short i = 0; i < MEMORY_PARTITIONS; ++i)
             if (!memory[i].id) {
-                memory[i] = Page(pending.front().getId(), &ready, size);
+                memory[i] = Page(pending.front().getId(), &ready,
+                        (size >= PARTITION_SIZE) ? PARTITION_SIZE : size);
                 size >= PARTITION_SIZE ? size -= PARTITION_SIZE : size = 0;
+                emptyFrames--;
                 if (!(--pages))
                     break;
             }

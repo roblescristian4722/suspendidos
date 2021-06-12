@@ -119,8 +119,6 @@ void Frame::print(const std::string& msj, char color, bool newl,
                   unsigned int fill)
 {
     std::string aux;
-    unsigned int times = msj.size() / (this->widthFrame - 2);
-
     for (size_t i = 0; i < msj.size(); ++i) {
         gotoxy(this->xPos, this->yPos);
         aux = msj[i];

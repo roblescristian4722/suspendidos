@@ -20,7 +20,7 @@
 #include "cursor.h"
 #define FIELD_WIDTH 8
 #define MAX_READY_JOB_AMOUNT 4
-#define FRAME_Y 4
+#define FRAME_Y 5
 #define MAX_SIZE_JOBS_FRAME 24
 #define MAX_BLOCKED_TIME 5
 #define NO_RESPONSE_TIME -1
@@ -45,8 +45,8 @@ enum ExecResult{
 struct Page
 { 
     short id = 0;
-    std::vector<Process> *state;
-    short size;
+    std::vector<Process> *state = nullptr;
+    short size = 0;
     Page(){}
     Page(const short &id, std::vector<Process> *state, const short &size);
 };

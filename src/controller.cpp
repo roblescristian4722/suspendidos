@@ -22,7 +22,7 @@ Controller::Controller(std::vector<Process> *pending, std::vector<Process> *read
     blockedF.setFrame(FIELD_WIDTH * 3 + 15, FRAME_Y + 7,
                       FIELD_WIDTH * 3 + 2, MAX_SIZE_JOBS_FRAME + 3, MORADO);
     memoryF.setFrame(FIELD_WIDTH * 9 + 7 + (FIELD_WIDTH * 4), FRAME_Y,
-                      FIELD_WIDTH * 4 + 2, MEMORY_PARTITIONS, AZUL);
+                      FIELD_WIDTH * 4 + 6, FRAME_Y + MEMORY_PARTITIONS, AZUL);
 
     stateColors[&(*finished)] = CYAN;
     stateColors[&(*ready)] = VERDE;
@@ -168,7 +168,7 @@ void Controller::fillReady(Process &p)
 void Controller::fillMemory(const short &f, const Page &p)
 {
     memoryF.print(std::to_string(f), BLANCO, false, FIELD_WIDTH);
-    memoryF.print(std::to_string(p.size) + "/" + std::to_string(PARTITION_SIZE),
+    memoryF.print(std::to_string(p.size) + "/" + std::to_string(PARTITION_SIZE) + " MB",
                   BLANCO, false, FIELD_WIDTH);
     if (p.id){
         memoryF.print(std::to_string(p.id), BLANCO, false, FIELD_WIDTH);
@@ -252,9 +252,11 @@ void Controller::printUpdated()
         fillFinished(finished->back());
         finishedUp = false;
     }
-    if (memoryUp)
+    if (memoryUp){
+        printFrames(false, false, false, false, true);
         for (short i = 0; i < MEMORY_PARTITIONS; ++i)
             fillMemory(i, (*memory)[i]);
+    }
     if (current != nullptr) {
         printFrames(false, true);
         fillCurrent();
