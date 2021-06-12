@@ -47,8 +47,10 @@ struct Page
     short id = 0;
     std::vector<Process> *state = nullptr;
     short size = 0;
+    bool working = false;
     Page(){}
-    Page(const short &id, std::vector<Process> *state, const short &size);
+    Page(const short &id, std::vector<Process> *state, const short &size,
+         bool working);
 };
 
 // Clase que funciona como controlador de arquitectura MVC para transferencia

@@ -22,7 +22,7 @@ Controller::Controller(std::vector<Process> *pending, std::vector<Process> *read
     blockedF.setFrame(FIELD_WIDTH * 3 + 15, FRAME_Y + 7,
                       FIELD_WIDTH * 3 + 2, MAX_SIZE_JOBS_FRAME + 3, MORADO);
     memoryF.setFrame(FIELD_WIDTH * 9 + 7 + (FIELD_WIDTH * 4), FRAME_Y,
-                      FIELD_WIDTH * 4 + 6, FRAME_Y + MEMORY_PARTITIONS, AZUL);
+                      FIELD_WIDTH * 4 + 8, FRAME_Y + MEMORY_PARTITIONS, AZUL);
 
     stateColors[&(*finished)] = CYAN;
     stateColors[&(*ready)] = VERDE;
@@ -172,7 +172,10 @@ void Controller::fillMemory(const short &f, const Page &p)
                   BLANCO, false, FIELD_WIDTH);
     if (p.id){
         memoryF.print(std::to_string(p.id), BLANCO, false, FIELD_WIDTH);
-        memoryF.print(states[p.state], BLANCO, true);
+        if (!p.working)
+            memoryF.print(states[p.state], BLANCO, true);
+        else
+            memoryF.print("En ejecucion", BLANCO, true);
     }
     else {
         memoryF.print("libre", BLANCO, false, FIELD_WIDTH);

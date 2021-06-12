@@ -2,11 +2,13 @@
 
 std::map<std::string, bool> ProcessManager::idsUsed;
 
-Page::Page(const short &id, std::vector<Process> *state, const short &size)
+Page::Page(const short &id, std::vector<Process> *state, const short &size,
+           bool working)
 {
         this->id = id;
         this->state = state;
         this->size = size;
+        this->working = working;
 }
 
 ProcessManager::ProcessManager()
@@ -191,6 +193,7 @@ void ProcessManager::executeProcess(long execTime)
 
 void ProcessManager::execute()
 {
+    bool exit = false;
     controller.initFrames();
     while (processLeft()) {
         jump = CONTI;
@@ -200,6 +203,13 @@ void ProcessManager::execute()
             current = new Process(ready.front());
             controller.current = current;
             ready.erase(ready.begin());
+            for (short i = 0; i < MEMORY_PARTITIONS; ++i){
+                if (memory[i].id == current->getId()) {
+                    memory[i].working = true;
+                    exit = true;
+                }
+            }
+            exit = false;
         }
         else
             createDummyProcess(blocked.front().getBlockedTime());
@@ -210,8 +220,17 @@ void ProcessManager::execute()
         allBlocked = false;
         executeProcess(current->getMaxTime() - current->getServiceTime());
         if (jump != INTER) {
-            if (jump == QUANTUM && current->getRemTime())
+            if (jump == QUANTUM && current->getRemTime()){
                 ready.push_back(*current);
+                for (short i = 0; i < MEMORY_PARTITIONS; ++i) {
+                    if (memory[i].id == ready.back().getId()){
+                        memory[i].working = false;
+                        exit = true;
+                    }
+                    else if (exit)
+                        break;
+                }
+            }
             else if (current->getId()) {
                 current->setFinishTime(lapsedTime);
                 current->setReturnTime(current->getFinishTime() - current->getArrivalTime());
@@ -220,6 +239,15 @@ void ProcessManager::execute()
                     current->setResponseTime(0);
                 if (jump != ERROR)
                     current->calculate();
+                for (short i = 0; i < MEMORY_PARTITIONS; ++i) {
+                    if (memory[i].id == current->getId()){
+                        memory[i].state = nullptr;
+                        memory[i].id = 0;
+                        exit = true;
+                    }
+                    else if (exit)
+                        break;
+                }
                 controller.finishedUp = true;
                 finished.push_back(*current);
             }
@@ -276,6 +304,7 @@ unsigned short ProcessManager::inter(long &cont)
         for (short i = 0; i < MEMORY_PARTITIONS; ++i) {
             if (memory[i].id == blocked.back().getId()){
                 memory[i].state = &blocked;
+                memory[i].working = false;
                 exit = true;
             }
             else if (exit)
@@ -326,7 +355,7 @@ bool ProcessManager::pushToMemory()
         for (short i = 0; i < MEMORY_PARTITIONS; ++i)
             if (!memory[i].id) {
                 memory[i] = Page(pending.front().getId(), &ready,
-                        (size >= PARTITION_SIZE) ? PARTITION_SIZE : size);
+                        (size >= PARTITION_SIZE) ? PARTITION_SIZE : size, false);
                 size >= PARTITION_SIZE ? size -= PARTITION_SIZE : size = 0;
                 emptyFrames--;
                 if (!(--pages))
