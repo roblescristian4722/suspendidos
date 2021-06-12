@@ -139,6 +139,15 @@ void ProcessManager::checkBlocked()
     }
 }
 
+bool ProcessManager::dummyProcess()
+{
+    if (blocked.size() && !ready.size() && current == nullptr)
+        return true;
+    /* if (!pending.size() && !ready.size() && blocked.size() && current == nullptr) */
+    /*     return true; */
+    return false;
+}
+
 void ProcessManager::createDummyProcess(const long &execTime)
 {
     current = new Process;
@@ -153,7 +162,6 @@ void ProcessManager::createDummyProcess(const long &execTime)
 void ProcessManager::executeProcess(long execTime)
 {
     while (execTime--) {
-        allBlocked = false;
         // Se asigna un tiempo de respuesta si aún no se ha asignado uno
         if (current->getResponseTime() == NO_RESPONSE_TIME)
             current->setResponseTime(lapsedTime - current->getArrivalTime());
@@ -199,6 +207,7 @@ void ProcessManager::execute()
         controller.readyUp = true;
         controller.memoryUp = true;
         controller.printUpdated();
+        allBlocked = false;
         executeProcess(current->getMaxTime() - current->getServiceTime());
         if (jump != INTER) {
             if (jump == QUANTUM && current->getRemTime())
@@ -258,19 +267,10 @@ unsigned short ProcessManager::keyListener(long &cont)
     return CONTI;
 }
 
-bool ProcessManager::dummyProcess()
-{
-    if (blocked.size() && !ready.size())
-        return true;
-    /* if (!pending.size() && !ready.size() && blocked.size() && current == nullptr) */
-    /*     return true; */
-    return false;
-}
-
 unsigned short ProcessManager::inter(long &cont)
 {
     bool exit = false;
-    if (ready.size() && current->getId()){
+    if (current->getId()){
         current->setBlockedTime(MAX_BLOCKED_TIME);
         blocked.push_back(*current);
         for (short i = 0; i < MEMORY_PARTITIONS; ++i) {
