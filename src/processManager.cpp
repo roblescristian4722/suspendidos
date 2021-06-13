@@ -13,13 +13,15 @@ Page::Page(const short &id, std::vector<Process> *state, const short &size,
 
 ProcessManager::ProcessManager()
 {
+    std::ofstream file("log");
+    file.close();
     srand(time(NULL));
     this->current = nullptr;
     this->lapsedTime = 0;
     this->lastId = 0;
     this->controller = Controller(&pending, &ready, &finished, &blocked, nullptr,
                             &lapsedTime, &quantum, &memory);
-    this->emptyFrames = MEMORY_PARTITIONS;
+    this->emptyFrames = MEMORY_PARTITIONS - SO_PAGES;
     for (short i = MEMORY_PARTITIONS - 1; i >= MEMORY_PARTITIONS - SO_PAGES; --i) {
         this->memory[i].id = -1;
         this->memory[i].size = PARTITION_SIZE;
@@ -67,6 +69,12 @@ void ProcessManager::obtainProcess(const unsigned long& cont)
     aux.setMaxTime(std::to_string(generateTime()));
     // Captura del tamaño del proceso
     aux.setSize(generateSize());
+    std::fstream file("log", std::ios::app | std::ios::out);
+    file << "id: " << aux.getId() << std::endl
+         << "op: " << aux.getOp() << std::endl
+         << "tme: " << aux.getMaxTime() << std::endl
+         << "size: " << aux.getSize() << std::endl << std::endl;
+    file.close();
     pending.push_back(aux);
 }
 
@@ -102,11 +110,10 @@ bool ProcessManager::processLeft()
 void ProcessManager::checkBlocked()
 {
     std::vector<Process>::iterator it = blocked.begin();
-    bool exit = false;
     while (it < blocked.end()) {
         if (it->getBlockedTime() == 1) {
             ready.push_back(*it);
-            updatePage(ready.back().getId(), &ready, false, exit, &ready.back());
+            updatePage(ready.back().getId(), &ready, false, &ready.back());
             controller.readyUp = true;
             blocked.erase(it);
         } else {
@@ -172,7 +179,6 @@ void ProcessManager::executeProcess(long execTime)
 
 void ProcessManager::execute()
 {
-    bool exit = false;
     controller.initFrames();
     while (processLeft()) {
         jump = CONTI;
@@ -182,7 +188,7 @@ void ProcessManager::execute()
             current = new Process(ready.front());
             controller.current = current;
             ready.erase(ready.begin());
-            updatePage(current->getId(), &ready, true, exit, current);
+            updatePage(current->getId(), &ready, true, current);
         }
         else
             createDummyProcess(blocked.front().getBlockedTime());
@@ -195,7 +201,7 @@ void ProcessManager::execute()
         if (jump != INTER) {
             if (jump == QUANTUM && current->getRemTime()){
                 ready.push_back(*current);
-                updatePage(ready.back().getId(), &ready, false, exit, &ready.back());
+                updatePage(ready.back().getId(), &ready, false, &ready.back());
             }
             else if (current->getId()) {
                 current->setFinishTime(lapsedTime);
@@ -205,7 +211,7 @@ void ProcessManager::execute()
                     current->setResponseTime(0);
                 if (jump != ERROR)
                     current->calculate();
-                updatePage(0, nullptr, false, exit, current, true);
+                updatePage(0, nullptr, false, current, true);
                 controller.finishedUp = true;
                 finished.push_back(*current);
             }
@@ -255,11 +261,10 @@ unsigned short ProcessManager::keyListener(long &cont)
 
 unsigned short ProcessManager::inter(long &cont)
 {
-    bool exit = false;
     if (current->getId()){
         current->setBlockedTime(MAX_BLOCKED_TIME);
         blocked.push_back(*current);
-        updatePage(blocked.back().getId(), &blocked, false, exit, &blocked.back());
+        updatePage(blocked.back().getId(), &blocked, false, &blocked.back());
         delete current;
         current = nullptr;
         controller.current = nullptr;
@@ -321,21 +326,18 @@ bool ProcessManager::pushToMemory()
 }
 
 void ProcessManager::updatePage(const short &id, std::vector<Process> *s,
-                                bool w, bool &e, const Process *p, bool freeMemory)
+                                bool w, const Process *p, bool freeMemory)
 {
-    for (short i = 0; i < MEMORY_PARTITIONS; ++i) {
+    for (short i = 0; i < MEMORY_PARTITIONS; ++i)
         if (p != nullptr) {
             if (memory[i].id == p->getId()){
                 memory[i].id = id;
+                if (!id)
+                    memory[i].size = 0;
                 memory[i].state = s;
                 memory[i].working = w;
-                e = true;
                 if (freeMemory)
                     emptyFrames++;
             }
-            else if (e)
-                break;
         }
-    }
-    e = false;
 }

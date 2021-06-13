@@ -49,6 +49,7 @@ void Controller::redrawBCP()
     blockedF.drawFrame();
     finishedF.drawFrame();
     readyF.drawFrame();
+    memoryF.drawFrame();
     printFrames(false, false, true);
     for (size_t i = 0; i < (*finished).size(); ++i)
         fillFinished((*finished)[i]);

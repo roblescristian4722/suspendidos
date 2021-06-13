@@ -170,7 +170,7 @@ private:
     // cola de listos. Si es posible ingresa el proceso y retorna true, en caso
     // contrario simplemente retorna false
     bool pushToMemory();
-    void updatePage(const short &id, std::vector<Process> *s, bool w, bool &e,
+    void updatePage(const short &id, std::vector<Process> *s, bool w,
                     const Process *p = nullptr, bool freeMemory = false);
 
 public :
