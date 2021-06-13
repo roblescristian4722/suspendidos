@@ -171,7 +171,7 @@ private:
     // contrario simplemente retorna false
     bool pushToMemory();
     void updatePage(const short &id, std::vector<Process> *s, bool w, bool &e,
-                    const Process *p = nullptr);
+                    const Process *p = nullptr, bool freeMemory = false);
 
 public :
     ProcessManager();

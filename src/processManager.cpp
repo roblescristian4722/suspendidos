@@ -205,7 +205,7 @@ void ProcessManager::execute()
                     current->setResponseTime(0);
                 if (jump != ERROR)
                     current->calculate();
-                updatePage(0, nullptr, false, exit, current);
+                updatePage(0, nullptr, false, exit, current, true);
                 controller.finishedUp = true;
                 finished.push_back(*current);
             }
@@ -321,15 +321,17 @@ bool ProcessManager::pushToMemory()
 }
 
 void ProcessManager::updatePage(const short &id, std::vector<Process> *s,
-                                bool w, bool &e, const Process *p)
+                                bool w, bool &e, const Process *p, bool freeMemory)
 {
     for (short i = 0; i < MEMORY_PARTITIONS; ++i) {
         if (p != nullptr) {
-            if (memory[i].id == p->getId()){             
+            if (memory[i].id == p->getId()){
                 memory[i].id = id;
                 memory[i].state = s;
                 memory[i].working = w;
                 e = true;
+                if (freeMemory)
+                    emptyFrames++;
             }
             else if (e)
                 break;
