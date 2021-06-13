@@ -23,7 +23,8 @@ Controller::Controller(std::vector<Process> *pending, std::vector<Process> *read
                       FIELD_WIDTH * 3 + 2, MAX_SIZE_JOBS_FRAME + 3, MORADO);
     memoryF.setFrame(FIELD_WIDTH * 9 + 7 + (FIELD_WIDTH * 4), FRAME_Y,
                       FIELD_WIDTH * 4 + 8, FRAME_Y + MEMORY_PARTITIONS, AZUL);
-
+    nextF.setFrame(1, FRAME_Y + MAX_SIZE_JOBS_FRAME + 3, FIELD_WIDTH * 3 + 2, 6,
+                  ROJO);
     stateColors[&(*finished)] = CYAN;
     stateColors[&(*ready)] = VERDE;
     stateColors[&(*blocked)] = ROJO;
@@ -50,10 +51,10 @@ void Controller::redrawBCP()
     finishedF.drawFrame();
     readyF.drawFrame();
     memoryF.drawFrame();
+    nextF.drawFrame();
     printFrames(false, false, true);
     for (size_t i = 0; i < (*finished).size(); ++i)
         fillFinished((*finished)[i]);
-    readyF.drawFrame();
     printFrames(true);
     for (size_t i = 0; i < (*ready).size(); ++i)
         fillReady((*ready)[i]);
@@ -166,6 +167,12 @@ void Controller::fillReady(Process &p)
     readyF.print(std::to_string(p.getServiceTime()), BLANCO, true, FIELD_WIDTH);
 }
 
+void Controller::fillNext(Process &p)
+{
+    nextF.print(std::to_string(p.getId()), BLANCO, false, FIELD_WIDTH);
+    nextF.print(std::to_string(p.getSize()) + " MB", BLANCO, true, FIELD_WIDTH);
+}
+
 void Controller::fillMemory(const short &f, const Page &p)
 {
     memoryF.print(std::to_string(f), BLANCO, false, FIELD_WIDTH);
@@ -189,7 +196,8 @@ void Controller::fillMemory(const short &f, const Page &p)
     }
 }
 
-void Controller::printFrames(bool rdy, bool act, bool fnshd, bool bloq, bool memory)
+void Controller::printFrames(bool rdy, bool act, bool fnshd, bool bloq, bool memory,
+                             bool next)
 {
     if (rdy) {
         readyF.update("Procesos listos:", BLANCO, true);
@@ -208,8 +216,12 @@ void Controller::printFrames(bool rdy, bool act, bool fnshd, bool bloq, bool mem
         blockedF.print("ID         TRB", BLANCO, true);
     }
     if (memory) {
-        memoryF.update("Tabla de paginas", BLANCO, true);
-        memoryF.print("MARCO   EO      ID      ESTADO", BLANCO, true);
+        memoryF.update("Tabla de paginas:", BLANCO, true);
+        memoryF.print("MARCO   TAM     ID      ESTADO", BLANCO, true);
+    }
+    if (next){
+        nextF.update("Proceso siguiente:", BLANCO, true);
+        nextF.print("ID      TAM", BLANCO, true);
     }
 }
 
@@ -232,7 +244,8 @@ void Controller::initFrames()
     finishedF.drawFrame();
     currentF.drawFrame();
     memoryF.drawFrame();
-    printFrames(true, true, true, true, true);
+    nextF.drawFrame();
+    printFrames(true, true, true, true, true, true);
 }
 
 void Controller::endFrames()
@@ -266,6 +279,11 @@ void Controller::printUpdated()
         for (short i = 0; i < MEMORY_PARTITIONS; ++i)
             fillMemory(i, (*memory)[i]);
     }
+    if (pending->size()) {
+        printFrames(false, false, false, false, false, true);
+        fillNext(pending->back());
+    } else
+        printFrames(false, false, false, false, false, true);
     if (current != nullptr) {
         printFrames(false, true);
         fillCurrent();

@@ -72,6 +72,7 @@ private:
     Frame currentF;
     Frame blockedF;
     Frame memoryF;
+    Frame nextF;
     std::vector<Process> *pending;
     std::vector<Process> *ready;
     Process *current;
@@ -92,11 +93,14 @@ private:
     void fillReady(Process &p);
     // Se proveen datos para el frame de procesos listos
     void fillMemory(const short &f, const Page &p);
+    // Se proveen datos para el frame del siguiente proceso en entrar en memoria
+    void fillNext(Process &p);
     // Imprime en pantalla el BCP de los procesos registrados
     void printBCP(const unsigned long lapsedTime, bool finished = false);
     // Inicializa las 3 ventanas para la ejecición de procesos
     void printFrames(bool pend = false, bool act = false,
-                     bool term = false, bool bloq = false, bool memory = false);
+                     bool term = false, bool bloq = false, bool memory = false,
+                     bool next = false);
     // Vuelve a dibujar los Frames ready y blocked después de mostrar el BCP
     void redrawBCP();
     void printCounters(const size_t &pending, const size_t &lapsedTime,
