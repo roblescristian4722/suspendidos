@@ -170,7 +170,12 @@ void Controller::fillMemory(const short &f, const Page &p)
     memoryF.print(std::to_string(f), BLANCO, false, FIELD_WIDTH);
     memoryF.print(std::to_string(p.size) + "/" + std::to_string(PARTITION_SIZE) + " MB",
                   BLANCO, false, FIELD_WIDTH);
-    if (p.id){
+    if (p.id == -1) {
+        memoryF.print("SO", BLANCO, false, FIELD_WIDTH);
+        memoryF.print("sistema", BLANCO, true);
+
+    }
+    else if (p.id){
         memoryF.print(std::to_string(p.id), BLANCO, false, FIELD_WIDTH);
         if (!p.working)
             memoryF.print(states[p.state], BLANCO, true);

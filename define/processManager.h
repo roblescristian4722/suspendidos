@@ -28,6 +28,7 @@
 #define MAX_PAGE_SIZE 25
 #define MIN_PAGE_SIZE 5
 #define MEMORY_SIZE 180
+#define SO_PAGES 3
 static const short MEMORY_PARTITIONS = MEMORY_SIZE / PARTITION_SIZE;
 
 class Controller;
@@ -159,18 +160,18 @@ private:
     // caso contario
     bool dummyProcess();
     void createDummyProcess(const long& execTime);
-    // Carga de uno a uno los procesos nuevos en memoria (máximo 5 al mismo
-    // tiempo) hasta que la cola de procesos nuevos esté vacía
-    void pendingToReady();
-    // Calcula los procesos en memoria
-    size_t onMemory();
     // Ejecuta procesos hasta que todas las colas estén vacías
     bool processLeft();
     // Itera por la cola de bloqueados reduciendo el contador de bloqueo de cada
     // uno, si el contador de un proceso llega a cero se inserta en la cola de
     // listos
     void checkBlocked();
+    // Verifica si hay suficiente espacio para insertar un proceso nuevo en la
+    // cola de listos. Si es posible ingresa el proceso y retorna true, en caso
+    // contrario simplemente retorna false
     bool pushToMemory();
+    void updatePage(const short &id, std::vector<Process> *s, bool w, bool &e,
+                    const Process *p = nullptr);
 
 public :
     ProcessManager();
