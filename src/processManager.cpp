@@ -19,8 +19,7 @@ ProcessManager::ProcessManager()
     this->current = nullptr;
     this->lapsedTime = 0;
     this->lastId = 0;
-    this->controller = Controller(&pending, &ready, &finished, &blocked, nullptr,
-                            &lapsedTime, &quantum, &memory);
+    this->controller = Controller(this);
     this->emptyFrames = MEMORY_PARTITIONS - SO_PAGES;
     for (short i = MEMORY_PARTITIONS - 1; i >= MEMORY_PARTITIONS - SO_PAGES; --i) {
         this->memory[i].id = -1;
@@ -142,7 +141,6 @@ void ProcessManager::createDummyProcess(const long &execTime)
     current->setMaxTime(std::to_string(execTime));
     current->setId(std::to_string(0));
     current->setRemTime(execTime);
-    controller.current = current;
     allBlocked = true;
     jump = CONTI;
 }
@@ -186,7 +184,6 @@ void ProcessManager::execute()
         while(pushToMemory());
         if (ready.size()) {
             current = new Process(ready.front());
-            controller.current = current;
             ready.erase(ready.begin());
             updatePage(current->getId(), &ready, true, current);
         }
@@ -216,7 +213,6 @@ void ProcessManager::execute()
                 finished.push_back(*current);
             }
             delete current;
-            controller.current = nullptr;
             current = nullptr;
         }
         controller.printUpdated();
@@ -267,7 +263,6 @@ unsigned short ProcessManager::inter(long &cont)
         updatePage(blocked.back().getId(), &blocked, false, &blocked.back());
         delete current;
         current = nullptr;
-        controller.current = nullptr;
         return INTER;
     }
     return CONTI;

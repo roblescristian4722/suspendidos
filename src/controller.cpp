@@ -1,18 +1,9 @@
 #include "../define/processManager.h"
 
 Controller::Controller(){}
-Controller::Controller(std::vector<Process> *pending, std::vector<Process> *ready,
-                       std::vector<Process> *finished, std::vector<Process> *blocked,
-                       Process *current,
-                       unsigned long *lapsedTime, unsigned int *quantum,
-                       Page (*memory)[MEMORY_PARTITIONS])
+Controller::Controller(ProcessManager *pm)
 {
-    this->pending = pending;
-    this->ready = ready;
-    this->finished = finished;
-    this->blocked = blocked;
-    this->current = current;
-    this->memory = memory;
+    this->pm = pm;
     readyF.setFrame(1, FRAME_Y, FIELD_WIDTH * 3 + 2,
                     MAX_SIZE_JOBS_FRAME + 2, AMARILLO);
     currentF.setFrame(FIELD_WIDTH * 3 + 4, FRAME_Y, FIELD_WIDTH * 6, 6,
@@ -25,16 +16,14 @@ Controller::Controller(std::vector<Process> *pending, std::vector<Process> *read
                       FIELD_WIDTH * 4 + 8, FRAME_Y + MEMORY_PARTITIONS, AZUL);
     nextF.setFrame(1, FRAME_Y + MAX_SIZE_JOBS_FRAME + 3, FIELD_WIDTH * 3 + 2, 6,
                   ROJO);
-    stateColors[&(*finished)] = CYAN;
-    stateColors[&(*ready)] = VERDE;
-    stateColors[&(*blocked)] = ROJO;
-    stateColors[&(*pending)] = AMARILLO;
-    states[&(*finished)] = "Finalizado";
-    states[&(*ready)] = "Listo";
-    states[&(*blocked)] = "Bloqueado";
-    states[&(*pending)] = "Nuevo";
-    this->lapsedTime = lapsedTime;
-    this->quantum = quantum;
+    stateColors[&pm->finished] = CYAN;
+    stateColors[&pm->ready] = VERDE;
+    stateColors[&pm->blocked] = ROJO;
+    stateColors[&pm->pending] = AMARILLO;
+    states[&pm->finished] = "Finalizado";
+    states[&pm->ready] = "Listo";
+    states[&pm->blocked] = "Bloqueado";
+    states[&pm->pending] = "Nuevo";
     readyUp = false;
     finishedUp = false;
     blockedUp = false;
@@ -53,11 +42,11 @@ void Controller::redrawBCP()
     memoryF.drawFrame();
     nextF.drawFrame();
     printFrames(false, false, true);
-    for (size_t i = 0; i < (*finished).size(); ++i)
-        fillFinished((*finished)[i]);
+    for (size_t i = 0; i < pm->finished.size(); ++i)
+        fillFinished(pm->finished[i]);
     printFrames(true);
-    for (size_t i = 0; i < (*ready).size(); ++i)
-        fillReady((*ready)[i]);
+    for (size_t i = 0; i < pm->ready.size(); ++i)
+        fillReady(pm->ready[i]);
     printUpdated();
 }
 
@@ -69,87 +58,81 @@ void Controller::printBCP(const unsigned long lapsedTime, bool fnsh)
     for (it = states.begin(); it != states.end(); it++) {
         queue = it->first;
         if (fnsh)
-            queue = &(*finished);
+            queue = &pm->finished;
         // Se itera por cada proceso
         for (size_t i = 0; i < queue->size(); ++i) {
-            std::cout << "ID: " << (*queue)[i].getId() << std::endl
-                      << "Estado: " << Cursor::colorText(stateColors[queue],
-                                                    states[queue]) << std::endl;
-            std::cout << "Operacion: " << (*queue)[i].getOp() << std::endl
-                    << "Tiempo maximo estimado: " << (*queue)[i].getMaxTime()
-                    << std::endl;
+            std::cout << "ID: " << (*queue)[i].getId()
+                      << "\n" << "Estado: " << Cursor::colorText(stateColors[queue],
+                                                                 states[queue])
+                      << "\n" << "Operacion: " << (*queue)[i].getOp()
+                      << "\n" << "Tiempo maximo estimado: " << (*queue)[i].getMaxTime()
+                      << "\n" << "Tamaño: " << (*queue)[i].getSize() << " MB"
+                      << "\n";
             if (states[queue] != "Nuevo") {
                 if (states[queue] != "Finalizado")
                     (*queue)[i].setWaitingTime(lapsedTime - (*queue)[i].getArrivalTime()
                                                - (*queue)[i].getServiceTime());
                 std::cout << "Tiempo de llegada: " << (*queue)[i].getArrivalTime()
-                        << std::endl
-                        << "Tiempo de servicio: " << (*queue)[i].getServiceTime()
-                        << std::endl;
-                std::cout << "Tiempo de espera: " << (*queue)[i].getWaitingTime()
-                          << std::endl;
+                          << "\n" << "Tiempo de servicio: " << (*queue)[i].getServiceTime()
+                          << "\n" << "Tiempo de espera: " << (*queue)[i].getWaitingTime()
+                          << "\n";
                 if ((*queue)[i].getResponseTime() != NO_RESPONSE_TIME)
                     std::cout << "Tiempo de respuesta: " << (*queue)[i].getResponseTime()
-                            << std::endl;
+                              << "\n";
                 if (states[queue] == "Finalizado")
-                    std::cout << "Resultado: " << (*queue)[i].getResult() << std::endl
-                            << "Tiempo de finalizacion: " << (*queue)[i].getFinishTime()
-                            << std::endl
-                            << "Tiempo de retorno: " << (*queue)[i].getReturnTime()
-                            << std::endl;
+                    std::cout << "Resultado: " << (*queue)[i].getResult()
+                              << "\n" << "Tiempo de finalizacion: " << (*queue)[i].getFinishTime()
+                              << "\n" << "Tiempo de retorno: " << (*queue)[i].getReturnTime()
+                              << "\n";
                 if (states[queue] == "Bloqueado")
                     std::cout << "Tiempo bloqueado restante: "
-                              << (*queue)[i].getBlockedTime() << std::endl;
+                              << (*queue)[i].getBlockedTime() << "\n";
             }
-            std::cout << std::endl;
+            std::cout << "\n";
         }
         if (fnsh)
             break;
     }
     
     // Impresión del proceso en ejecución
-    if (current != nullptr)
-        if (current->getId()) {
-            std::cout << "ID: " << current->getId() << std::endl
-                    << "Estado:" << Cursor::colorText(MORADO, "En ejecucion")
-                    << std::endl
-                    << "Operacion: " << current->getOp() << std::endl
-                    << "Tiempo maximo estimado: " << current->getMaxTime()
-                    << std::endl
-                    << "Tiempo restante: " << current->getRemTime()
-                    << std::endl
-                    << "Tiempo de llegada: " << current->getArrivalTime()
-                    << std::endl;
-            current->setWaitingTime(lapsedTime - current->getArrivalTime()
-                                    - current->getServiceTime());
-            std::cout << "Tiempo de espera: " << current->getWaitingTime()
-                    << std::endl
-                    << "Tiempo de servicio: " << current->getServiceTime()
-                    << std::endl
-                    << "Tiempo de respuesta: " << current->getResponseTime()
-                    << std::endl << std::endl;
+    if (pm->current != nullptr)
+        if (pm->current->getId()) {
+            std::cout << "ID: " << pm->current->getId()
+                      << "\n" << "Estado:" << Cursor::colorText(MORADO, "En ejecucion")
+                      << "\n" << "Operacion: " << pm->current->getOp()
+                      << "\n" << "Tiempo maximo estimado: " << pm->current->getMaxTime()
+                      << "\n" << "Tamaño: " << pm->current->getSize() << " MB"
+                      << "\n" << "Tiempo restante: " << pm->current->getRemTime()
+                      << "\n" << "Tiempo de llegada: " << pm->current->getArrivalTime()
+                      << "\n";
+            pm->current->setWaitingTime(lapsedTime - pm->current->getArrivalTime()
+                                        - pm->current->getServiceTime());
+            std::cout << "Tiempo de espera: " << pm->current->getWaitingTime()
+                      << "\n" << "Tiempo de servicio: " << pm->current->getServiceTime()
+                      << "\n" << "Tiempo de respuesta: " << pm->current->getResponseTime()
+                      << "\n" << "\n";
         }
     std::cout.flush();
 }
 
 void Controller::fillBlocked()
 {
-    for (size_t i = 0; i < (*blocked).size(); ++i) {
-        blockedF.print(std::to_string((*blocked)[i].getId()), BLANCO, false,
+    for (size_t i = 0; i < pm->blocked.size(); ++i) {
+        blockedF.print(std::to_string(pm->blocked[i].getId()), BLANCO, false,
                 FIELD_WIDTH + 3);
-        blockedF.print(std::to_string((*blocked)[i].getBlockedTime()), BLANCO, true,
+        blockedF.print(std::to_string(pm->blocked[i].getBlockedTime()), BLANCO, true,
                 FIELD_WIDTH);
     }
 }
 
 void Controller::fillCurrent()
 {
-    currentF.print(std::to_string(current->getId()), BLANCO, false, FIELD_WIDTH);
-    currentF.print(std::to_string(current->getQuantum()), BLANCO, false, FIELD_WIDTH);
-    currentF.print(current->getOp(), BLANCO, false, FIELD_WIDTH);
-    currentF.print(std::to_string(current->getMaxTime()), BLANCO, false, FIELD_WIDTH);
-    currentF.print(std::to_string(current->getRemTime()), BLANCO, false, FIELD_WIDTH);
-    currentF.print(std::to_string(current->getServiceTime()), BLANCO, true, FIELD_WIDTH);
+    currentF.print(std::to_string(pm->current->getId()), BLANCO, false, FIELD_WIDTH);
+    currentF.print(std::to_string(pm->current->getQuantum()), BLANCO, false, FIELD_WIDTH);
+    currentF.print(pm->current->getOp(), BLANCO, false, FIELD_WIDTH);
+    currentF.print(std::to_string(pm->current->getMaxTime()), BLANCO, false, FIELD_WIDTH);
+    currentF.print(std::to_string(pm->current->getRemTime()), BLANCO, false, FIELD_WIDTH);
+    currentF.print(std::to_string(pm->current->getServiceTime()), BLANCO, true, FIELD_WIDTH);
 }
 
 void Controller::fillFinished(Process &p)
@@ -258,11 +241,11 @@ void Controller::endFrames()
 
 void Controller::printUpdated()
 {
-    printCounters(pending->size(), *lapsedTime, *quantum);
+    printCounters(pm->pending.size(), pm->lapsedTime, pm->quantum);
     if (readyUp) {
         printFrames(true);
-        for (size_t i = 0; i < ready->size(); ++i)
-            fillReady((*ready)[i]);
+        for (size_t i = 0; i < pm->ready.size(); ++i)
+            fillReady(pm->ready[i]);
         readyUp = false;
     }
     if (blockedUp) {
@@ -271,20 +254,20 @@ void Controller::printUpdated()
         currentF.rmContent();
     }
     if (finishedUp) {
-        fillFinished(finished->back());
+        fillFinished(pm->finished.back());
         finishedUp = false;
     }
     if (memoryUp){
         printFrames(false, false, false, false, true);
         for (short i = 0; i < MEMORY_PARTITIONS; ++i)
-            fillMemory(i, (*memory)[i]);
+            fillMemory(i, pm->memory[i]);
     }
-    if (pending->size()) {
+    if (pm->pending.size()) {
         printFrames(false, false, false, false, false, true);
-        fillNext(pending->back());
+        fillNext(pm->pending.front());
     } else
         printFrames(false, false, false, false, false, true);
-    if (current != nullptr) {
+    if (pm->current != nullptr) {
         printFrames(false, true);
         fillCurrent();
     }

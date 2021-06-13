@@ -15,7 +15,7 @@ int main()
     ProcessManager m;
     m.init();
 
-    Cursor::gotoxy(1, 31);
+    Cursor::gotoxy(1, 40);
     std::cout << Cursor::colorText(
                  VERDE, "Fin de la ejecucion, presione ENTER para mostrar tiempos")
               << std::endl;

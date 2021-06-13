@@ -65,23 +65,16 @@ private:
     bool finishedUp;
     bool blockedUp;
     bool memoryUp;
-    unsigned long *lapsedTime;
-    unsigned int *quantum;
     Frame readyF;
     Frame finishedF;
     Frame currentF;
     Frame blockedF;
     Frame memoryF;
     Frame nextF;
-    std::vector<Process> *pending;
-    std::vector<Process> *ready;
-    Process *current;
-    std::vector<Process> *finished;
-    std::vector<Process> *blocked;
     std::map<std::vector<Process> *, std::string> states;
     std::map<std::vector<Process> *, char> stateColors;
-    Page (*memory)[MEMORY_PARTITIONS];
     std::vector<std::pair<short, short>> availableProcesses;
+    ProcessManager *pm;
 
     // Se proveen datos para el frame de procesos bloqueados
     void fillBlocked();
@@ -111,10 +104,7 @@ private:
 
 public:
     Controller();
-    Controller(std::vector<Process> *pending, std::vector<Process> *ready,
-               std::vector<Process> *finished, std::vector<Process> *blocked,
-               Process *current, unsigned long *lapsedTime, unsigned int *quantum,
-               Page (*memory)[MEMORY_PARTITIONS]);
+    Controller(ProcessManager* pm);
     ~Controller();
 };
 
