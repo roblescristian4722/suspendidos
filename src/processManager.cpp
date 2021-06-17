@@ -13,8 +13,6 @@ Page::Page(const short &id, std::vector<Process> *state, const short &size,
 
 ProcessManager::ProcessManager()
 {
-    std::ofstream file("log");
-    file.close();
     srand(time(NULL));
     this->current = nullptr;
     this->lapsedTime = 0;
@@ -25,6 +23,8 @@ ProcessManager::ProcessManager()
         this->memory[i].id = -1;
         this->memory[i].size = PARTITION_SIZE;
     }
+    std::ofstream file(FILE_NAME, std::ios::out);
+    file.close();
 }
 
 ProcessManager::~ProcessManager()
@@ -68,12 +68,6 @@ void ProcessManager::obtainProcess(const unsigned long& cont)
     aux.setMaxTime(std::to_string(generateTime()));
     // Captura del tamaño del proceso
     aux.setSize(generateSize());
-    std::fstream file("log", std::ios::app | std::ios::out);
-    file << "id: " << aux.getId() << std::endl
-         << "op: " << aux.getOp() << std::endl
-         << "tme: " << aux.getMaxTime() << std::endl
-         << "size: " << aux.getSize() << std::endl << std::endl;
-    file.close();
     pending.push_back(aux);
 }
 
@@ -250,6 +244,14 @@ unsigned short ProcessManager::keyListener(long &cont)
                 return BCP;
             default:
                 return CONTI;
+            case 's': case 'S':
+                if (suspend())
+                    return SUSPENDED;
+                return CONTI;
+            case 'r': case 'R':
+                if (restore())
+                    return RECOVERED;
+                return CONTI;
         }
     }
     return CONTI;
@@ -313,7 +315,6 @@ bool ProcessManager::pushToMemory()
             }
         ready.push_back(*pending.begin());
         ready.back().setArrivalTime(lapsedTime);
-        ready.back().setFrame(frames);
         pending.erase(pending.begin());
         return true;
     }
@@ -335,4 +336,33 @@ void ProcessManager::updatePage(const short &id, std::vector<Process> *s,
                     emptyFrames++;
             }
         }
+}
+
+bool ProcessManager::suspend()
+{
+    Process tmp = blocked.front();
+    if (!blocked.size())
+        return false;
+    std::fstream file(FILE_NAME, std::ios::out | std::ios::in);
+    suspended.push_back(std::pair<short,short>
+                        (blocked.front().getId(), blocked.front().getSize()));
+    file.seekp(tmp.getId() - 1);
+    file.write((char*)&tmp, sizeof(Process));
+    file.close();
+    blocked.erase(blocked.begin());
+    return true;
+}
+
+bool ProcessManager::restore()
+{
+    Process tmp;
+    if (!suspended.size() || suspended.front().second / PARTITION_SIZE > emptyFrames)
+        return false;
+    std::fstream file(FILE_NAME, std::ios::in);
+    file.seekg(suspended.front().first - 1);
+    file.read((char*)&tmp, sizeof(Process));
+    blocked.push_back(tmp);
+    suspended.erase(suspended.begin());
+    file.close();
+    return true;
 }

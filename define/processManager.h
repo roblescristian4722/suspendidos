@@ -29,6 +29,7 @@
 #define MIN_PAGE_SIZE 5
 #define MEMORY_SIZE 180
 #define SO_PAGES 3
+#define FILE_NAME "suspendidos.txt"
 static const short MEMORY_PARTITIONS = MEMORY_SIZE / PARTITION_SIZE;
 
 class Controller;
@@ -41,6 +42,8 @@ enum ExecResult{
     BCP,
     NEWP,
     QUANTUM,
+    SUSPENDED,
+    RECOVERED
 };
 
 struct Page
@@ -65,12 +68,14 @@ private:
     bool finishedUp;
     bool blockedUp;
     bool memoryUp;
+    bool suspendedUp;
     Frame readyF;
     Frame finishedF;
     Frame currentF;
     Frame blockedF;
     Frame memoryF;
     Frame nextF;
+    Frame suspendedF;
     std::map<std::vector<Process> *, std::string> states;
     std::map<std::vector<Process> *, char> stateColors;
     std::vector<std::pair<short, short>> availableProcesses;
@@ -88,12 +93,14 @@ private:
     void fillMemory(const short &f, const Page &p);
     // Se proveen datos para el frame del siguiente proceso en entrar en memoria
     void fillNext(Process &p);
+    // Se proveen datos para el frame del siguiente proceso en entrar en memoria
+    void fillSuspended(std::pair<short, short> p);
     // Imprime en pantalla el BCP de los procesos registrados
     void printBCP(const unsigned long lapsedTime, bool finished = false);
     // Inicializa las 3 ventanas para la ejecición de procesos
     void printFrames(bool pend = false, bool act = false,
                      bool term = false, bool bloq = false, bool memory = false,
-                     bool next = false);
+                     bool next = false, bool suspended = false);
     // Vuelve a dibujar los Frames ready y blocked después de mostrar el BCP
     void redrawBCP();
     void printCounters(const size_t &pending, const size_t &lapsedTime,
@@ -127,6 +134,7 @@ private:
     bool allBlocked;
     Page memory[MEMORY_PARTITIONS];
     short emptyFrames;
+    std::vector<std::pair<short, short>> suspended;
     Controller controller;
 
     // Genera tiempo aleatorio entre un rango de 6 a 15 segundos
@@ -164,8 +172,11 @@ private:
     // cola de listos. Si es posible ingresa el proceso y retorna true, en caso
     // contrario simplemente retorna false
     bool pushToMemory();
+    // Actualiza la información de todas las páginas de un determinado proceso
     void updatePage(const short &id, std::vector<Process> *s, bool w,
                     const Process *p = nullptr, bool freeMemory = false);
+    bool suspend();
+    bool restore();
 
 public :
     ProcessManager();

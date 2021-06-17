@@ -16,6 +16,7 @@ Controller::Controller(ProcessManager *pm)
                       FIELD_WIDTH * 4 + 8, FRAME_Y + MEMORY_PARTITIONS, AZUL);
     nextF.setFrame(1, FRAME_Y + MAX_SIZE_JOBS_FRAME + 3, FIELD_WIDTH * 3 + 2, 6,
                   ROJO);
+    suspendedF.setFrame(1, FRAME_Y + MAX_SIZE_JOBS_FRAME + 10, FIELD_WIDTH * 3 + 2, 6);
     stateColors[&pm->finished] = CYAN;
     stateColors[&pm->ready] = VERDE;
     stateColors[&pm->blocked] = ROJO;
@@ -29,6 +30,7 @@ Controller::Controller(ProcessManager *pm)
     blockedUp = false;
     finishedUp = false;
     memoryUp = false;
+    suspendedUp = false;
 }
 
 Controller::~Controller(){}
@@ -156,6 +158,12 @@ void Controller::fillNext(Process &p)
     nextF.print(std::to_string(p.getSize()) + " MB", BLANCO, true, FIELD_WIDTH);
 }
 
+void Controller::fillSuspended(std::pair<short, short> p)
+{
+    suspendedF.print(std::to_string(p.first), BLANCO, false, FIELD_WIDTH);
+    suspendedF.print(std::to_string(p.second) + " MB", BLANCO, true, FIELD_WIDTH);
+}
+
 void Controller::fillMemory(const short &f, const Page &p)
 {
     memoryF.print(std::to_string(f), BLANCO, false, FIELD_WIDTH);
@@ -180,7 +188,7 @@ void Controller::fillMemory(const short &f, const Page &p)
 }
 
 void Controller::printFrames(bool rdy, bool act, bool fnshd, bool bloq, bool memory,
-                             bool next)
+                             bool next, bool suspended)
 {
     if (rdy) {
         readyF.update("Procesos listos:", BLANCO, true);
@@ -206,6 +214,10 @@ void Controller::printFrames(bool rdy, bool act, bool fnshd, bool bloq, bool mem
         nextF.update("Proceso siguiente:", BLANCO, true);
         nextF.print("ID      TAM", BLANCO, true);
     }
+    if (suspended){
+        suspendedF.update("Proceso suspendido:", BLANCO, true);
+        suspendedF.print("ID      TAM", BLANCO, true);
+    }
 }
 
 void Controller::printCounters(const size_t &pending, const size_t &lapsedTime,
@@ -228,7 +240,8 @@ void Controller::initFrames()
     currentF.drawFrame();
     memoryF.drawFrame();
     nextF.drawFrame();
-    printFrames(true, true, true, true, true, true);
+    suspendedF.drawFrame();
+    printFrames(true, true, true, true, true, true, true);
 }
 
 void Controller::endFrames()
@@ -262,11 +275,12 @@ void Controller::printUpdated()
         for (short i = 0; i < MEMORY_PARTITIONS; ++i)
             fillMemory(i, pm->memory[i]);
     }
-    if (pm->pending.size()) {
-        printFrames(false, false, false, false, false, true);
+    printFrames(false, false, false, false, false, true);
+    if (pm->pending.size())
         fillNext(pm->pending.front());
-    } else
-        printFrames(false, false, false, false, false, true);
+    printFrames(false, false, false, false, false, false, true);
+    if (pm->suspended.size())
+        fillSuspended(pm->suspended.front());
     if (pm->current != nullptr) {
         printFrames(false, true);
         fillCurrent();

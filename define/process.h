@@ -9,9 +9,10 @@ class Process
 {
 private:
     std::string name;
-    std::string op;
     std::string result;
     unsigned long id;
+    short size;
+    std::string op;
     unsigned short maxTime;
     unsigned short remTime;
     unsigned short serviceTime;
@@ -22,8 +23,6 @@ private:
     unsigned short blockedTime;
     short responseTime;
     unsigned int quantum;
-    short size;
-    std::vector<short> frame;
 
 public:
     Process();

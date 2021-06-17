@@ -53,8 +53,6 @@ const unsigned int &Process::getQuantum() const
 { return this->quantum; }
 const short &Process::getSize() const
 { return this->size; }
-const std::vector<short> &Process::getFrame() const
-{ return this->frame; }
 
 //Setters validados
 bool Process::setName(const std::string& name)
@@ -125,8 +123,6 @@ void Process::setQuantum(const unsigned int &v)
 { this->quantum = v; }
 void Process::setSize(const short &v)
 { this->size = v; }
-void Process::setFrame(const std::vector<short> &v)
-{ this->frame = v; }
 
 void Process::calculate()
 {
