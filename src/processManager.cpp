@@ -352,7 +352,6 @@ bool ProcessManager::restoreToMemory(Process p)
                 if (!(--pages))
                     break;
             }
-        p.setBlockedTime(0);
         blocked.push_back(p);
         suspended.erase(suspended.begin());
         return true;
@@ -380,12 +379,14 @@ bool ProcessManager::suspend()
         filei.close();
         std::fstream fileo(FILE_NAME, std::ios::out | std::ios::in);
         fileo.seekp(pos);
-        fileo << tmp.getId() << DEL << tmp.getSize() << DEL << tmp.getOp().c_str()
-             << DEL << tmp.getMaxTime() << DEL << tmp.getRemTime()
-             << DEL << tmp.getServiceTime()
-             << DEL << tmp.getArrivalTime()
-             << DEL << tmp.getWaitingTime()
-             << DEL << tmp.getResponseTime() << '\n';
+        for (short i = 0; i < str.size() + id.size(); ++i)
+            fileo << " ";
+        fileo.seekp(pos);
+        fileo << tmp.getId() << DEL << tmp.getSize()
+              << DEL << tmp.getOp().c_str() << DEL << tmp.getMaxTime()
+              << DEL << tmp.getRemTime() << DEL << tmp.getServiceTime()
+              << DEL << tmp.getArrivalTime() << DEL << tmp.getWaitingTime()
+              << DEL << tmp.getResponseTime() << '\n';
         fileo.close();
         suspended.push_back(std::pair<short,short>
                             (tmp.getId(), tmp.getSize()));
@@ -425,7 +426,7 @@ bool ProcessManager::restore()
             tmp.setArrivalTime(atoi(str.c_str()));
             getline(filei, str, DEL);
             tmp.setWaitingTime(atoi(str.c_str()));
-            getline(filei, str, DEL);
+            getline(filei, str);
             tmp.setResponseTime(atoi(str.c_str()));
             tmp.setBlockedTime(MAX_BLOCKED_TIME);
             tmp.setQuantum(0);
@@ -439,7 +440,7 @@ bool ProcessManager::restore()
     restoreToMemory(tmp);
     std::fstream fileo(FILE_NAME, std::ios::out | std::ios::in);
     fileo.seekp(pos);
-    fileo << 0 << DEL << std::endl;
+    fileo << 0 << DEL;
     fileo.close();
     controller.blockedUp = true;
     return true;
