@@ -98,7 +98,6 @@ public:
     void setSize(const short &v);
     // Asigna el estado en el que se encuentra el proceso
     void setFrame(const std::vector<short> &v);
-
 };
 
 #endif // PROCESS_H

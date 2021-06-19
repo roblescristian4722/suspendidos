@@ -30,6 +30,7 @@
 #define MEMORY_SIZE 180
 #define SO_PAGES 3
 #define FILE_NAME "suspendidos.txt"
+#define DEL '|'
 static const short MEMORY_PARTITIONS = MEMORY_SIZE / PARTITION_SIZE;
 
 class Controller;
@@ -37,13 +38,13 @@ class ProcessManager;
 
 enum ExecResult{
     CONTI = 0,
-    INTER,
-    ERROR,
     BCP,
     NEWP,
     QUANTUM,
+    ERROR,
+    INTER,
     SUSPENDED,
-    RECOVERED
+    RESTORED
 };
 
 struct Page
@@ -172,6 +173,7 @@ private:
     // cola de listos. Si es posible ingresa el proceso y retorna true, en caso
     // contrario simplemente retorna false
     bool pushToMemory();
+    bool restoreToMemory(Process p);
     // Actualiza la información de todas las páginas de un determinado proceso
     void updatePage(const short &id, std::vector<Process> *s, bool w,
                     const Process *p = nullptr, bool freeMemory = false);

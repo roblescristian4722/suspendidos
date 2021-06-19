@@ -122,7 +122,7 @@ void ProcessManager::checkBlocked()
 
 bool ProcessManager::dummyProcess()
 {
-    if (blocked.size() && !ready.size() && current == nullptr)
+    if ((blocked.size() || suspended.size()) && !ready.size() && current == nullptr)
         return true;
     /* if (!pending.size() && !ready.size() && blocked.size() && current == nullptr) */
     /*     return true; */
@@ -153,7 +153,7 @@ void ProcessManager::executeProcess(long execTime)
             execTime--;
         }
         controller.printUpdated();
-        if (jump == INTER || jump == ERROR || (allBlocked && jump == NEWP && !pending.size()))
+        if (jump >= ERROR || (allBlocked && jump == NEWP && !pending.size()))
             break;
         std::this_thread::sleep_for(std::chrono::seconds(1));
         checkBlocked();
@@ -173,23 +173,23 @@ void ProcessManager::execute()
 {
     controller.initFrames();
     while (processLeft()) {
-        jump = CONTI;
         allBlocked = false;
         while(pushToMemory());
-        if (ready.size()) {
+        if (ready.size() && jump <= INTER) {
             current = new Process(ready.front());
             ready.erase(ready.begin());
             updatePage(current->getId(), &ready, true, current);
         }
-        else
+        else if (jump <= INTER)
             createDummyProcess(blocked.front().getBlockedTime());
+        jump = CONTI;
         current->setQuantum(0);
         controller.readyUp = true;
         controller.memoryUp = true;
         controller.printUpdated();
         allBlocked = false;
         executeProcess(current->getMaxTime() - current->getServiceTime());
-        if (jump != INTER) {
+        if (jump < INTER) {
             if (jump == QUANTUM && current->getRemTime()){
                 ready.push_back(*current);
                 updatePage(ready.back().getId(), &ready, false, &ready.back());
@@ -250,7 +250,7 @@ unsigned short ProcessManager::keyListener(long &cont)
                 return CONTI;
             case 'r': case 'R':
                 if (restore())
-                    return RECOVERED;
+                    return RESTORED;
                 return CONTI;
         }
     }
@@ -300,13 +300,13 @@ void ProcessManager::pause(const bool& bcp)
 bool ProcessManager::pushToMemory()
 {
     short size = pending.front().getSize();
+    short id = pending.front().getId();
     short pages = size / PARTITION_SIZE;
-    std::vector<short> frames;
     (size % PARTITION_SIZE) ? pages++ : pages;
     if (pages <= emptyFrames && pages && pending.size()) {
         for (short i = 0; i < MEMORY_PARTITIONS; ++i)
             if (!memory[i].id) {
-                memory[i] = Page(pending.front().getId(), &ready,
+                memory[i] = Page(id, &ready,
                         (size >= PARTITION_SIZE) ? PARTITION_SIZE : size, false);
                 size >= PARTITION_SIZE ? size -= PARTITION_SIZE : size = 0;
                 emptyFrames--;
@@ -314,8 +314,8 @@ bool ProcessManager::pushToMemory()
                     break;
             }
         ready.push_back(*pending.begin());
-        ready.back().setArrivalTime(lapsedTime);
         pending.erase(pending.begin());
+        ready.back().setArrivalTime(lapsedTime);
         return true;
     }
     return false;
@@ -338,31 +338,109 @@ void ProcessManager::updatePage(const short &id, std::vector<Process> *s,
         }
 }
 
+bool ProcessManager::restoreToMemory(Process p)
+{
+    short size = suspended.front().second;
+    short pages = size / PARTITION_SIZE;
+    if (pages <= emptyFrames && pages && suspended.size()){
+        for (short i = 0; i < MEMORY_PARTITIONS; ++i)
+            if (!memory[i].id) {
+                memory[i] = Page(suspended.front().first, &blocked,
+                        (size >= PARTITION_SIZE) ? PARTITION_SIZE : size, false);
+                size >= PARTITION_SIZE ? size -= PARTITION_SIZE : size = 0;
+                emptyFrames--;
+                if (!(--pages))
+                    break;
+            }
+        p.setBlockedTime(0);
+        blocked.push_back(p);
+        suspended.erase(suspended.begin());
+        return true;
+    }
+    return false;
+}
+
 bool ProcessManager::suspend()
 {
-    Process tmp = blocked.front();
     if (!blocked.size())
         return false;
-    std::fstream file(FILE_NAME, std::ios::out | std::ios::in);
-    suspended.push_back(std::pair<short,short>
-                        (blocked.front().getId(), blocked.front().getSize()));
-    file.seekp(tmp.getId() - 1);
-    file.write((char*)&tmp, sizeof(Process));
-    file.close();
-    blocked.erase(blocked.begin());
-    return true;
+    Process tmp = blocked.front();
+    std::string str;
+    std::string id;
+    std::fstream filei(FILE_NAME, std::ios::out | std::ios::in);
+    if (filei.is_open()) {
+        short pos = filei.tellg();
+        while (!filei.eof()){
+            pos = filei.tellg();
+            getline(filei, id, DEL);
+            getline(filei, str);
+            if (filei.eof() || id == "0")
+                break;
+        }
+        filei.close();
+        std::fstream fileo(FILE_NAME, std::ios::out | std::ios::in);
+        fileo.seekp(pos);
+        fileo << tmp.getId() << DEL << tmp.getSize() << DEL << tmp.getOp().c_str()
+             << DEL << tmp.getMaxTime() << DEL << tmp.getRemTime()
+             << DEL << tmp.getServiceTime()
+             << DEL << tmp.getArrivalTime()
+             << DEL << tmp.getWaitingTime()
+             << DEL << tmp.getResponseTime() << '\n';
+        fileo.close();
+        suspended.push_back(std::pair<short,short>
+                            (tmp.getId(), tmp.getSize()));
+        updatePage(0, nullptr, false, &tmp, true);
+        blocked.erase(blocked.begin());
+        controller.blockedUp = true;
+        return true;
+    }
+    return false;
 }
 
 bool ProcessManager::restore()
 {
-    Process tmp;
     if (!suspended.size() || suspended.front().second / PARTITION_SIZE > emptyFrames)
         return false;
-    std::fstream file(FILE_NAME, std::ios::in);
-    file.seekg(suspended.front().first - 1);
-    file.read((char*)&tmp, sizeof(Process));
-    blocked.push_back(tmp);
-    suspended.erase(suspended.begin());
-    file.close();
+    Process tmp;
+    std::string str;
+    std::string id;
+    std::fstream filei(FILE_NAME, std::ios::in);
+    short pos = filei.tellg();
+    while (!filei.eof()) {
+        pos = filei.tellg();
+        getline(filei, id, DEL);
+        if (atoi(id.c_str()) == suspended.front().first) {
+            tmp.setId(id);
+            getline(filei, str, DEL);
+            tmp.setSize(atoi(str.c_str()));
+            getline(filei, str, DEL);
+            tmp.setOp(str);
+            getline(filei, str, DEL);
+            tmp.setMaxTime(str);
+            getline(filei, str, DEL);
+            tmp.setRemTime(atoi(str.c_str()));
+            getline(filei, str, DEL);
+            tmp.setServiceTime(atoi(str.c_str()));
+            getline(filei, str, DEL);
+            tmp.setArrivalTime(atoi(str.c_str()));
+            getline(filei, str, DEL);
+            tmp.setWaitingTime(atoi(str.c_str()));
+            getline(filei, str, DEL);
+            tmp.setResponseTime(atoi(str.c_str()));
+            tmp.setBlockedTime(MAX_BLOCKED_TIME);
+            tmp.setQuantum(0);
+            break;
+        }
+        getline(filei, str);
+        if (filei.eof())
+            break;
+    }
+    filei.close();
+    restoreToMemory(tmp);
+    std::fstream fileo(FILE_NAME, std::ios::out | std::ios::in);
+    fileo.seekp(pos);
+    fileo << 0 << DEL << std::endl;
+    fileo.close();
+    controller.blockedUp = true;
     return true;
 }
