@@ -94,7 +94,7 @@ short ProcessManager::generateSize()
 
 bool ProcessManager::processLeft()
 {
-    if (!blocked.size() && !pending.size() && !ready.size()
+    if (!blocked.size() && !pending.size() && !ready.size() && !suspended.size()
     && current == nullptr)
         return false;
     return true;
@@ -342,6 +342,7 @@ bool ProcessManager::restoreToMemory(Process p)
 {
     short size = suspended.front().second;
     short pages = size / PARTITION_SIZE;
+    (size % PARTITION_SIZE) ? pages++ : pages;
     if (pages <= emptyFrames && pages && suspended.size()){
         for (short i = 0; i < MEMORY_PARTITIONS; ++i)
             if (!memory[i].id) {
