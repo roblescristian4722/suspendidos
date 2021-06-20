@@ -367,77 +367,85 @@ bool ProcessManager::suspend()
     Process tmp = blocked.front();
     std::string str;
     std::string id;
-    std::fstream filei(FILE_NAME, std::ios::out | std::ios::in);
-    if (filei.is_open()) {
-        short pos = filei.tellg();
-        while (!filei.eof()){
-            pos = filei.tellg();
-            getline(filei, id, DEL);
-            getline(filei, str);
-            if (filei.eof() || id == "0")
-                break;
-        }
-        filei.close();
-        std::fstream fileo(FILE_NAME, std::ios::out | std::ios::in);
-        fileo.seekp(pos);
-        for (short i = 0; i < str.size() + id.size(); ++i)
-            fileo << " ";
-        fileo.seekp(pos);
-        fileo << tmp.getId() << DEL << tmp.getSize()
-              << DEL << tmp.getOp().c_str() << DEL << tmp.getMaxTime()
-              << DEL << tmp.getRemTime() << DEL << tmp.getServiceTime()
-              << DEL << tmp.getArrivalTime() << DEL << tmp.getWaitingTime()
-              << DEL << tmp.getResponseTime() << '\n';
-        fileo.close();
-        suspended.push_back(std::pair<short,short>
-                            (tmp.getId(), tmp.getSize()));
-        updatePage(0, nullptr, false, &tmp, true);
-        blocked.erase(blocked.begin());
-        controller.blockedUp = true;
-        return true;
-    }
-    return false;
-}
-
-bool ProcessManager::restore()
-{
-    if (!suspended.size() || suspended.front().second / PARTITION_SIZE > emptyFrames)
-        return false;
-    Process tmp;
-    std::string str;
-    std::string id;
+    std::string buffer;
+    bool toBuffer = false;
     std::fstream filei(FILE_NAME, std::ios::in);
     short pos = filei.tellg();
-    while (!filei.eof()) {
-        pos = filei.tellg();
-        getline(filei, id, DEL);
-        if (atoi(id.c_str()) == suspended.front().first) {
-            tmp.setId(id);
-            getline(filei, str, DEL);
+    while (!filei.eof()){
+        if (!toBuffer) {
+            pos = filei.tellg();
+            std::getline(filei, id, DEL);
+        }
+        std::getline(filei, str);
+        if (toBuffer)
+            buffer += str + '\n';
+        else if (id == "0")
+            toBuffer = true;
+        if (filei.eof())
+            break;
+    }
+    filei.close();
+    std::fstream fileo(FILE_NAME, std::ios::out | std::ios::in);
+    fileo.seekp(pos);
+    fileo << tmp.getId() << DEL << tmp.getSize()
+          << DEL << tmp.getOp().c_str() << DEL << tmp.getMaxTime()
+          << DEL << tmp.getRemTime() << DEL << tmp.getServiceTime()
+          << DEL << tmp.getArrivalTime()
+          << DEL << tmp.getResponseTime() << '\n';
+    fileo << buffer;
+    fileo.close();
+    suspended.push_back(std::pair<short,short>
+                        (tmp.getId(), tmp.getSize()));
+    updatePage(0, nullptr, false, &tmp, true);
+    blocked.erase(blocked.begin());
+    controller.blockedUp = true;
+    return true;
+}
+
+Process ProcessManager::processFromFile(short id, short *pos)
+{
+    Process tmp;
+    std::ifstream file(FILE_NAME, std::ios::in);
+    std::string strId;
+    std::string str;
+    if (pos != nullptr)
+        *pos = file.tellg();
+    while (!file.eof()) {
+        if (pos != nullptr)
+            *pos = file.tellg();
+        getline(file, strId, DEL);
+        if (atoi(strId.c_str()) == id) {
+            tmp.setId(strId);
+            getline(file, str, DEL);
             tmp.setSize(atoi(str.c_str()));
-            getline(filei, str, DEL);
+            getline(file, str, DEL);
             tmp.setOp(str);
-            getline(filei, str, DEL);
+            getline(file, str, DEL);
             tmp.setMaxTime(str);
-            getline(filei, str, DEL);
+            getline(file, str, DEL);
             tmp.setRemTime(atoi(str.c_str()));
-            getline(filei, str, DEL);
+            getline(file, str, DEL);
             tmp.setServiceTime(atoi(str.c_str()));
-            getline(filei, str, DEL);
+            getline(file, str, DEL);
             tmp.setArrivalTime(atoi(str.c_str()));
-            getline(filei, str, DEL);
-            tmp.setWaitingTime(atoi(str.c_str()));
-            getline(filei, str);
+            getline(file, str);
             tmp.setResponseTime(atoi(str.c_str()));
             tmp.setBlockedTime(MAX_BLOCKED_TIME);
             tmp.setQuantum(0);
             break;
         }
-        getline(filei, str);
-        if (filei.eof())
-            break;
+        getline(file, str);
     }
-    filei.close();
+    file.close();
+    return tmp;
+}
+
+bool ProcessManager::restore()
+{
+    short pos;
+    if (!suspended.size() || suspended.front().second / PARTITION_SIZE > emptyFrames)
+        return false;
+    Process tmp = processFromFile(suspended.front().first, &pos);
     restoreToMemory(tmp);
     std::fstream fileo(FILE_NAME, std::ios::out | std::ios::in);
     fileo.seekp(pos);

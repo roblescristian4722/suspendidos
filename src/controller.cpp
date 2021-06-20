@@ -43,6 +43,7 @@ void Controller::redrawBCP()
     readyF.drawFrame();
     memoryF.drawFrame();
     nextF.drawFrame();
+    suspendedF.drawFrame();
     printFrames(false, false, true);
     for (size_t i = 0; i < pm->finished.size(); ++i)
         fillFinished(pm->finished[i]);
@@ -56,6 +57,7 @@ void Controller::printBCP(const unsigned long lapsedTime, bool fnsh)
 {
     std::vector<Process>* queue;
     std::map<std::vector<Process>*, std::string>::iterator it;
+    Process tmp;
     // Se itera por cada estado distinto a "en ejecución"
     for (it = states.begin(); it != states.end(); it++) {
         queue = it->first;
@@ -94,6 +96,23 @@ void Controller::printBCP(const unsigned long lapsedTime, bool fnsh)
         }
         if (fnsh)
             break;
+    }
+    if (pm->suspended.size()){
+        for (unsigned int i = 0; i < pm->suspended.size(); ++i) {
+            tmp = pm->processFromFile(pm->suspended[i].first);
+            std::cout << "ID: " << tmp.getId()
+                      << "\n" << "Estado: " << Cursor::colorText(AZUL, "Suspendido")
+                      << "\n" << "Operación: " << tmp.getOp()
+                      << "\n" << "Tiempo máximo estimado: " << tmp.getMaxTime()
+                      << "\n" << "Tamaño: " << tmp.getSize()
+                      << "\n" << "Tiempo restante: " << tmp.getRemTime()
+                      << "\n" << "Tiempo de llegada: " << tmp.getArrivalTime();
+            tmp.setWaitingTime(lapsedTime - tmp.getArrivalTime() - tmp.getServiceTime());
+            std::cout << "\n" << "Tiempo de espera: " << tmp.getWaitingTime()
+                      << "\n" << "Tiempo de servicio: " << tmp.getServiceTime()
+                      << "\n" << "Tiempo de respuesta: " << tmp.getResponseTime()
+                      << "\n" << "\n";
+        } 
     }
     
     // Impresión del proceso en ejecución

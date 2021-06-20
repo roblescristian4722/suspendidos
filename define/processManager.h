@@ -173,12 +173,21 @@ private:
     // cola de listos. Si es posible ingresa el proceso y retorna true, en caso
     // contrario simplemente retorna false
     bool pushToMemory();
+    // Toma el último elemento guardado en almacenamiento secundario y carga las
+    // páginas requeridas en la tabla de páginas (siempre y cuando haya marcos
+    // libres suficientes)
     bool restoreToMemory(Process p);
     // Actualiza la información de todas las páginas de un determinado proceso
     void updatePage(const short &id, std::vector<Process> *s, bool w,
                     const Process *p = nullptr, bool freeMemory = false);
+    // Si hay procesos en la cola de procesos bloqueados, toma dicho proceso y
+    // lo envía a un archivo en almacenamiento secundario.
     bool suspend();
+    // Si hay procesos en almacenamiento secundario se carga al primero en la
+    // cola de estos y se carga a memoria (siempre y cuando haya marcos
+    // disponibles en memoria)
     bool restore();
+    Process processFromFile(short id, short *pos = nullptr);
 
 public :
     ProcessManager();
