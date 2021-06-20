@@ -90,7 +90,8 @@ void Controller::printBCP(const unsigned long lapsedTime, bool fnsh)
                               << "\n";
                 if (states[queue] == "Bloqueado")
                     std::cout << "Tiempo bloqueado restante: "
-                              << (*queue)[i].getBlockedTime() << "\n";
+                              << (*queue)[i].getBlockedTime() << "\n"
+                              << "Tiempo restante: " << (*queue)[i].getRemTime() << "\n";
             }
             std::cout << "\n";
         }
@@ -105,7 +106,6 @@ void Controller::printBCP(const unsigned long lapsedTime, bool fnsh)
                       << "\n" << "Operación: " << tmp.getOp()
                       << "\n" << "Tiempo máximo estimado: " << tmp.getMaxTime()
                       << "\n" << "Tamaño: " << tmp.getSize()
-                      << "\n" << "Tiempo restante: " << tmp.getRemTime()
                       << "\n" << "Tiempo de llegada: " << tmp.getArrivalTime();
             tmp.setWaitingTime(lapsedTime - tmp.getArrivalTime() - tmp.getServiceTime());
             std::cout << "\n" << "Tiempo de espera: " << tmp.getWaitingTime()

@@ -368,6 +368,7 @@ bool ProcessManager::suspend()
     std::string str;
     std::string id;
     std::string buffer;
+    std::string preBuffer;
     bool toBuffer = false;
     std::fstream filei(FILE_NAME, std::ios::in);
     short pos = filei.tellg();
@@ -381,12 +382,14 @@ bool ProcessManager::suspend()
             buffer += str + '\n';
         else if (id == "0")
             toBuffer = true;
+        else if (id > "0")
+            preBuffer += id + '|' + str + '\n';
         if (filei.eof())
             break;
     }
     filei.close();
-    std::fstream fileo(FILE_NAME, std::ios::out | std::ios::in);
-    fileo.seekp(pos);
+    std::ofstream fileo(FILE_NAME, std::ios::out);
+    fileo << preBuffer;
     fileo << tmp.getId() << DEL << tmp.getSize()
           << DEL << tmp.getOp().c_str() << DEL << tmp.getMaxTime()
           << DEL << tmp.getRemTime() << DEL << tmp.getServiceTime()
